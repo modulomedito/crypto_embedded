@@ -197,7 +197,7 @@ crypto_aes_Ret crypto_aes_encrypt(
     uint32_t output_buf_capacity
 ) {
     crypto_aes_Handle handle;
-    crypto_aes_Ret ret;
+    crypto_aes_Ret ret = crypto_aes_Ret_Ok;
 
     // For ECB/CBC, PKCS#7 padding adds up to one full block
     // (worst case: block-aligned input).
@@ -249,7 +249,7 @@ crypto_aes_Ret crypto_aes_decrypt(
     uint32_t output_buf_capacity
 ) {
     crypto_aes_Handle handle;
-    crypto_aes_Ret ret;
+    crypto_aes_Ret ret = crypto_aes_Ret_Ok;
 
     ret = crypto_aes_Handle_init(
         &handle,
