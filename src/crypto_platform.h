@@ -16,6 +16,10 @@ extern "C" {
 //==============================================================================
 // INCLUDE
 //==============================================================================
+#include <stdbool.h>
+#if defined(__linux__) || defined(__APPLE__) || defined(_WIN32)
+#include <assert.h>
+#endif
 
 //==============================================================================
 // PUBLIC TYPEDEF
@@ -24,59 +28,6 @@ extern "C" {
 //==============================================================================
 // PUBLIC MACRO
 //==============================================================================
-/// @brief Cross-platform assertion macro
-/// @details User may override by defining CRYPTO_PLATFORM_ASSERT before
-/// including this header. On hosted platforms, delegates to standard C assert()
-/// and respects NDEBUG. On embedded platforms, emits a debug trap or enters an
-/// infinite loop to halt execution for debugging.
-#if !defined(CRYPTO_PLATFORM_ASSERT)
-// Hosted platforms: Linux, macOS, Windows use standard C assert()
-#if defined(__linux__) || defined(__APPLE__) || defined(_WIN32)
-#include <assert.h>
-#define CRYPTO_PLATFORM_ASSERT(cond) assert(cond)
-// HighTec (GCC-based, TriCore/Aurix)
-#elif defined(__HIGHTEC__)
-#define CRYPTO_PLATFORM_ASSERT(cond)                                           \
-    do {                                                                       \
-        if ((cond) == false) {                                                 \
-            __builtin_trap();                                                  \
-        }                                                                      \
-    } while (0)
-// TASKING
-#elif defined(__TASKING__)
-#define CRYPTO_PLATFORM_ASSERT(cond)                                           \
-    do {                                                                       \
-        if ((cond) == false) {                                                 \
-            __debug();                                                         \
-        }                                                                      \
-    } while (0)
-// TI C2000
-#elif defined(__TI_COMPILER_VERSION__)
-#define CRYPTO_PLATFORM_ASSERT(cond)                                           \
-    do {                                                                       \
-        if ((cond) == false) {                                                 \
-            asm(" ESTOP0");                                                    \
-        }                                                                      \
-    } while (0)
-// Generic GCC (ARM, RISC-V, etc.)
-#elif defined(__GNUC__)
-#define CRYPTO_PLATFORM_ASSERT(cond)                                           \
-    do {                                                                       \
-        if ((cond) == false) {                                                 \
-            __builtin_trap();                                                  \
-        }                                                                      \
-    } while (0)
-// Unknown platform: infinite loop
-#else
-#define CRYPTO_PLATFORM_ASSERT(cond)                                           \
-    do {                                                                       \
-        if ((cond) == false) {                                                 \
-            for (;;) {                                                         \
-            }                                                                  \
-        }                                                                      \
-    } while (0)
-#endif
-#endif // #if !defined(CRYPTO_PLATFORM_ASSERT)
 
 //==============================================================================
 // PUBLIC ENUM
@@ -97,6 +48,33 @@ extern "C" {
 //==============================================================================
 // PUBLIC FUNCTION DECLARATION
 //==============================================================================
+static inline void crypto_platform_assert(bool cond) {
+#if defined(__linux__) || defined(__APPLE__) || defined(_WIN32) // Host
+    assert(cond);
+#elif defined(__HIGHTEC__) // HighTec (GCC-based, TriCore/Aurix)
+#define crypto_platform_assert(cond)
+    if ((cond) == false) {
+        __builtin_trap();
+    }
+#elif defined(__TASKING__) // TASKING
+    if ((cond) == false) {
+        __debug();
+    }
+#elif defined(__TI_COMPILER_VERSION__) // TI C2000
+    if ((cond) == false) {
+        asm(" ESTOP0");
+    }
+#elif defined(__GNUC__) // Generic GCC (ARM, RISC-V, etc.)
+    if ((cond) == false) {
+        __builtin_trap();
+    }
+#else // Unknown platform: infinite loop
+    if ((cond) == false) {
+        for (;;) {
+        }
+    }
+#endif
+}
 
 //==============================================================================
 // GUARD END

@@ -17,7 +17,7 @@ extern "C" {
 // INCLUDE
 //==============================================================================
 #include "crypto_aes.h"
-#include "crypto_util.h"
+#include <string.h>
 
 //==============================================================================
 // PUBLIC TYPEDEF
@@ -81,7 +81,7 @@ static int32_t crypto_aes_test_tc1(void) {
         0xd7U, 0x9fU, 0xb6U, 0x41U, 0x1cU, 0x3fU, 0x9dU, 0xf8U, //
     };
     uint8_t cipher_buf[80];
-    crypto_util_memset(cipher_buf, 0U, sizeof(cipher_buf));
+    memset(cipher_buf, 0U, sizeof(cipher_buf));
 
     crypto_aes_Ret aes_ret = crypto_aes_encrypt(
         crypto_aes_KeyLen_128,
@@ -102,11 +102,8 @@ static int32_t crypto_aes_test_tc1(void) {
         return __LINE__;
     }
 
-    int32_t ret = crypto_util_memcmp(
-        expected_cipher_buf,
-        cipher_buf,
-        sizeof(expected_cipher_buf)
-    );
+    int32_t ret =
+        memcmp(expected_cipher_buf, cipher_buf, sizeof(expected_cipher_buf));
     if (ret != 0) {
 #if defined(CRYPTO_AES_TEST_PRINTF) && (CRYPTO_AES_TEST_PRINTF > 0U)
         printf("\ncipher_buf:\n");
@@ -160,7 +157,7 @@ static int32_t crypto_aes_test_tc2(void) {
         0xadU, 0x2bU, 0x41U, 0x7bU, 0xe6U, 0x6cU, 0x37U, 0x10U, //
     };
     uint8_t plain_buf[64];
-    crypto_util_memset(plain_buf, 0U, sizeof(plain_buf));
+    memset(plain_buf, 0U, sizeof(plain_buf));
 
     crypto_aes_Ret aes_ret = crypto_aes_decrypt(
         crypto_aes_KeyLen_128,
@@ -181,11 +178,8 @@ static int32_t crypto_aes_test_tc2(void) {
         return __LINE__;
     }
 
-    int32_t ret = crypto_util_memcmp(
-        expected_plain_buf,
-        plain_buf,
-        sizeof(expected_plain_buf)
-    );
+    int32_t ret =
+        memcmp(expected_plain_buf, plain_buf, sizeof(expected_plain_buf));
     if (ret != 0) {
 #if defined(CRYPTO_AES_TEST_PRINTF) && (CRYPTO_AES_TEST_PRINTF > 0U)
         printf("\nplain_buf:\n");
@@ -228,7 +222,7 @@ static int32_t crypto_aes_test_tc3(void) {
         0x8aU, 0x32U, 0xd4U, 0xfcU, 0x56U, 0x3cU, 0x55U, 0xccU, //
     };
     uint8_t cipher_buf[32];
-    crypto_util_memset(cipher_buf, 0U, sizeof(cipher_buf));
+    memset(cipher_buf, 0U, sizeof(cipher_buf));
 
     crypto_aes_Ret aes_ret = crypto_aes_encrypt(
         crypto_aes_KeyLen_192,
@@ -249,11 +243,8 @@ static int32_t crypto_aes_test_tc3(void) {
         return __LINE__;
     }
 
-    int32_t ret = crypto_util_memcmp(
-        expected_cipher_buf,
-        cipher_buf,
-        sizeof(expected_cipher_buf)
-    );
+    int32_t ret =
+        memcmp(expected_cipher_buf, cipher_buf, sizeof(expected_cipher_buf));
     if (ret != 0) {
         return __LINE__;
     }
@@ -279,7 +270,7 @@ static int32_t crypto_aes_test_tc4(void) {
         0xe9U, 0x3dU, 0x7eU, 0x11U, 0x73U, 0x93U, 0x17U, 0x2aU,
     };
     uint8_t plain_buf[16];
-    crypto_util_memset(plain_buf, 0U, sizeof(plain_buf));
+    memset(plain_buf, 0U, sizeof(plain_buf));
     // clang-format on
 
     crypto_aes_Ret aes_ret = crypto_aes_decrypt(
@@ -301,11 +292,8 @@ static int32_t crypto_aes_test_tc4(void) {
         return __LINE__;
     }
 
-    int32_t ret = crypto_util_memcmp(
-        expected_plain_buf,
-        plain_buf,
-        sizeof(expected_plain_buf)
-    );
+    int32_t ret =
+        memcmp(expected_plain_buf, plain_buf, sizeof(expected_plain_buf));
     if (ret != 0) {
         return __LINE__;
     }
@@ -333,7 +321,7 @@ static int32_t crypto_aes_test_tc5(void) {
         0x35U, 0xb0U, 0x51U, 0x2dU, 0xc8U, 0xc1U, 0xc4U, 0xd6U,
     };
     uint8_t cipher_buf[32];
-    crypto_util_memset(cipher_buf, 0U, sizeof(cipher_buf));
+    memset(cipher_buf, 0U, sizeof(cipher_buf));
 
     crypto_aes_Ret aes_ret = crypto_aes_encrypt(
         crypto_aes_KeyLen_256,
@@ -354,11 +342,8 @@ static int32_t crypto_aes_test_tc5(void) {
         return __LINE__;
     }
 
-    int32_t ret = crypto_util_memcmp(
-        expected_cipher_buf,
-        cipher_buf,
-        sizeof(expected_cipher_buf)
-    );
+    int32_t ret =
+        memcmp(expected_cipher_buf, cipher_buf, sizeof(expected_cipher_buf));
     if (ret != 0) {
         return __LINE__;
     }
@@ -385,7 +370,7 @@ static int32_t crypto_aes_test_tc6(void) {
         0xe9U, 0x3dU, 0x7eU, 0x11U, 0x73U, 0x93U, 0x17U, 0x2aU,
     };
     uint8_t plain_buf[16];
-    crypto_util_memset(plain_buf, 0U, sizeof(plain_buf));
+    memset(plain_buf, 0U, sizeof(plain_buf));
     // clang-format on
 
     crypto_aes_Ret aes_ret = crypto_aes_decrypt(
@@ -407,11 +392,8 @@ static int32_t crypto_aes_test_tc6(void) {
         return __LINE__;
     }
 
-    int32_t ret = crypto_util_memcmp(
-        expected_plain_buf,
-        plain_buf,
-        sizeof(expected_plain_buf)
-    );
+    int32_t ret =
+        memcmp(expected_plain_buf, plain_buf, sizeof(expected_plain_buf));
     if (ret != 0) {
         return __LINE__;
     }
@@ -448,7 +430,7 @@ static int32_t crypto_aes_test_tc7(void) {
         0xd7U, 0x9fU, 0xb6U, 0x41U, 0x1cU, 0x3fU, 0x9dU, 0xf8U,
     };
     uint8_t cipher_buf[80];
-    crypto_util_memset(cipher_buf, 0U, sizeof(cipher_buf));
+    memset(cipher_buf, 0U, sizeof(cipher_buf));
     // clang-format on
 
     crypto_aes_Handle aes_handle;
@@ -477,11 +459,8 @@ static int32_t crypto_aes_test_tc7(void) {
 
     (void)crypto_aes_Handle_finalize(&aes_handle);
 
-    int32_t ret = crypto_util_memcmp(
-        expected_cipher_buf,
-        cipher_buf,
-        sizeof(expected_cipher_buf)
-    );
+    int32_t ret =
+        memcmp(expected_cipher_buf, cipher_buf, sizeof(expected_cipher_buf));
     if (ret != 0) {
         return __LINE__;
     }

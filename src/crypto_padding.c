@@ -11,6 +11,7 @@
 #include "crypto_padding.h"
 #include "crypto_platform.h"
 #include "crypto_util.h"
+#include <string.h>
 
 //==============================================================================
 // IMPORTED SWITCH CHECK
@@ -66,12 +67,12 @@ crypto_padding_Ret crypto_padding_pkcs7_pad(
     if ((input_buf_ptr == NULL) || //
         (output_buf_ptr == NULL) || //
         (output_num_ptr == NULL)) {
-        CRYPTO_PLATFORM_ASSERT(false);
+        crypto_platform_assert(false);
         return crypto_padding_Ret_InvalidArg;
     }
 
     if ((block_size == 0U) || (block_size > 255U)) {
-        CRYPTO_PLATFORM_ASSERT(false);
+        crypto_platform_assert(false);
         return crypto_padding_Ret_InvalidArg;
     }
 
@@ -84,11 +85,11 @@ crypto_padding_Ret crypto_padding_pkcs7_pad(
 
     // Copy input data
     if (input_num > 0U) {
-        crypto_util_memcpy(output_buf_ptr, input_buf_ptr, input_num);
+        memcpy(output_buf_ptr, input_buf_ptr, input_num);
     }
 
     // Append padding bytes
-    crypto_util_memset(output_buf_ptr + input_num, pad_val, (uint32_t)pad_val);
+    crypto_util_memset(&output_buf_ptr[input_num], pad_val, (uint32_t)pad_val);
 
     *output_num_ptr = padded_len;
     return crypto_padding_Ret_Ok;
@@ -110,17 +111,17 @@ crypto_padding_Ret crypto_padding_pkcs7_unpad(
     if ((input_buf_ptr == NULL) || //
         (output_buf_ptr == NULL) || //
         (output_num_ptr == NULL)) {
-        CRYPTO_PLATFORM_ASSERT(false);
+        crypto_platform_assert(false);
         return crypto_padding_Ret_InvalidArg;
     }
 
     if ((block_size == 0U) || (block_size > 255U)) {
-        CRYPTO_PLATFORM_ASSERT(false);
+        crypto_platform_assert(false);
         return crypto_padding_Ret_InvalidArg;
     }
 
     if ((input_num == 0U) || ((input_num % (uint32_t)block_size) != 0U)) {
-        CRYPTO_PLATFORM_ASSERT(false);
+        crypto_platform_assert(false);
         return crypto_padding_Ret_BadPadding;
     }
 
@@ -146,7 +147,7 @@ crypto_padding_Ret crypto_padding_pkcs7_unpad(
     }
 
     if (*output_num_ptr > 0U) {
-        crypto_util_memcpy(output_buf_ptr, input_buf_ptr, *output_num_ptr);
+        memcpy(output_buf_ptr, input_buf_ptr, *output_num_ptr);
     }
 
     return crypto_padding_Ret_Ok;

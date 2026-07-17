@@ -1,8 +1,8 @@
 //==============================================================================
 /// @file       crypto_util.h
-/// @author     User (user@email.com)
-/// @brief
-/// @copyright  Copyright (C) 2026. All rights reserved.
+/// @author     modulomedito (chcchc1995@outook.com)
+/// @brief      Crypto utility
+/// @copyright  Copyright (C) 2026. MIT License.
 /// @details
 //==============================================================================
 //==============================================================================
@@ -45,44 +45,13 @@ extern "C" {
 //==============================================================================
 // PUBLIC FUNCTION DECLARATION
 //==============================================================================
-/// @brief Binary-safe memcmp for test assertions
-/// (not string, not flagged by MISRA string checkers)
-static inline int32_t crypto_util_memcmp(
-    const uint8_t* a_buf_ptr,
-    const uint8_t* b_buf_ptr,
-    uint32_t len
-) {
-    for (uint32_t i = 0U; i < len; i++) {
-        if (a_buf_ptr[i] > b_buf_ptr[i]) {
-            return 1;
-        } else if (a_buf_ptr[i] < b_buf_ptr[i]) {
-            return -1;
-        } else {
-            // Continue
-        }
-    }
-    return 0;
-}
-
-/// @brief memset
 static inline void crypto_util_memset(
-    uint8_t* buf_ptr,
-    uint8_t value,
-    uint32_t len
-) {
-    for (uint32_t i = 0U; i < len; i++) {
-        buf_ptr[i] = value;
-    }
-}
-
-/// @brief memcpy
-static inline void crypto_util_memcpy(
     uint8_t* dst_ptr,
-    const uint8_t* src_ptr,
+    uint8_t val,
     uint32_t len
 ) {
     for (uint32_t i = 0U; i < len; i++) {
-        dst_ptr[i] = src_ptr[i];
+        dst_ptr[i] = val;
     }
 }
 

@@ -10,7 +10,6 @@
 //==============================================================================
 #include "crypto_aes.h"
 #include "crypto_padding.h"
-#include "crypto_util.h"
 
 //==============================================================================
 // IMPORTED SWITCH CHECK
@@ -54,39 +53,39 @@ typedef struct {
 //==============================================================================
 static void crypto_aes_Handle_ecb_encrypt(crypto_aes_Handle* self);
 static void crypto_aes_Handle_ecb_decrypt(
-    crypto_aes_Handle* self,
+    const crypto_aes_Handle* self,
     uint8_t* buf_mut
 );
 static void crypto_aes_Handle_cbc_encrypt(crypto_aes_Handle* self);
 static void crypto_aes_Handle_cbc_decrypt(
     crypto_aes_Handle* self,
-    uint8_t* buf_mut
+    uint8_t* output_buf_ptr
 );
 static void crypto_aes_Handle_ctr_xcrypt(crypto_aes_Handle* self);
 static void crypto_aes_Handle_key_expansion(crypto_aes_Handle* self);
 static void crypto_aes_Handle_cipher(
-    crypto_aes_Handle* self,
-    crypto_aes_State* state_mut
+    const crypto_aes_Handle* self,
+    crypto_aes_State* state_ptr
 );
 static void crypto_aes_Handle_inv_cipher(
-    crypto_aes_Handle* self,
+    const crypto_aes_Handle* self,
     crypto_aes_State* state_ptr
 );
 static void crypto_aes_Handle_add_round_key(
-    crypto_aes_Handle* self,
+    const crypto_aes_Handle* self,
     uint32_t round,
-    crypto_aes_State* state_mut
+    crypto_aes_State* state_ptr
 );
 
 static uint8_t crypto_aes_xtime(uint8_t x);
 static uint8_t crypto_aes_multiply(uint8_t x, uint8_t y);
-static void crypto_aes_xor_with_iv(uint8_t* buf_mut, const uint8_t* iv_ref);
-static void crypto_aes_sub_bytes(crypto_aes_State* state_mut);
-static void crypto_aes_shift_rows(crypto_aes_State* state_mut);
-static void crypto_aes_mix_columns(crypto_aes_State* state_mut);
-static void crypto_aes_inv_sub_bytes(crypto_aes_State* state_mut);
-static void crypto_aes_inv_mix_columns(crypto_aes_State* state_mut);
-static void crypto_aes_inv_shift_rows(crypto_aes_State* state_mut);
+static void crypto_aes_xor_with_iv(uint8_t* buf_ptr, const uint8_t* iv_buf_ptr);
+static void crypto_aes_sub_bytes(crypto_aes_State* state_ptr);
+static void crypto_aes_shift_rows(crypto_aes_State* state_ptr);
+static void crypto_aes_mix_columns(crypto_aes_State* state_ptr);
+static void crypto_aes_inv_sub_bytes(crypto_aes_State* state_ptr);
+static void crypto_aes_inv_mix_columns(crypto_aes_State* state_ptr);
+static void crypto_aes_inv_shift_rows(crypto_aes_State* state_ptr);
 
 //==============================================================================
 // PRIVATE VARIABLE DEFINITION
@@ -292,17 +291,17 @@ crypto_aes_Ret crypto_aes_Handle_init(
     // Check keylen, key_buf_capacity
     switch (keylen) {
     case crypto_aes_KeyLen_128:
-        if (key_buf_capacity < 128U / 8U) {
+        if (key_buf_capacity < (128U / 8U)) {
             is_valid = false;
         }
         break;
     case crypto_aes_KeyLen_192:
-        if (key_buf_capacity < 192U / 8U) {
+        if (key_buf_capacity < (192U / 8U)) {
             is_valid = false;
         }
         break;
     case crypto_aes_KeyLen_256:
-        if (key_buf_capacity < 256U / 8U) {
+        if (key_buf_capacity < (256U / 8U)) {
             is_valid = false;
         }
         break;
@@ -369,7 +368,7 @@ crypto_aes_Ret crypto_aes_Handle_init(
     self->result_buf_ptr = output_buf_ptr;
     self->result_buf_capacity = output_buf_capacity;
     self->result_len = 0U;
-    crypto_util_memset(self->buf, 0U, CRYPTO_AES_BLOCK_U8_SIZE);
+    memset(self->buf, 0, CRYPTO_AES_BLOCK_U8_SIZE);
     if ((mode == crypto_aes_Mode_Cbc) || (mode == crypto_aes_Mode_Ctr)) {
         self->iv_buf_ptr = iv_buf_ptr;
         memcpy(self->iv_buf, iv_buf_ptr, CRYPTO_AES_BLOCK_U8_SIZE);
@@ -440,7 +439,8 @@ crypto_aes_Ret crypto_aes_Handle_update(
                             self->result_buf_ptr
                         );
                     }
-                    self->result_buf_ptr += CRYPTO_AES_BLOCK_U8_SIZE;
+                    self->result_buf_ptr =
+                        &(self->result_buf_ptr[CRYPTO_AES_BLOCK_U8_SIZE]);
                     self->result_len += CRYPTO_AES_BLOCK_U8_SIZE;
                     self->buf_len = 0;
                 }
@@ -449,30 +449,22 @@ crypto_aes_Ret crypto_aes_Handle_update(
 
         uint32_t space = CRYPTO_AES_BLOCK_U8_SIZE - self->buf_len;
         uint32_t copy_len =
-            (input_num - in_pos) < space ? (input_num - in_pos) : space;
-        crypto_util_memcpy(
-            &self->buf[self->buf_len],
-            &input_buf_ptr[in_pos],
-            copy_len
-        );
+            ((input_num - in_pos) < space) ? (input_num - in_pos) : (space);
+        memcpy(&self->buf[self->buf_len], &input_buf_ptr[in_pos], copy_len);
         self->buf_len += copy_len;
         in_pos += copy_len;
 
         // For Encryption and CTR mode, process as soon as we have 16 bytes
         if (self->buf_len == CRYPTO_AES_BLOCK_U8_SIZE) {
-            if ((self->mode == crypto_aes_Mode_Ecb ||
-                 self->mode == crypto_aes_Mode_Cbc) &&
-                self->dir == crypto_aes_Direction_Decrypt) {
+            if (((self->mode == crypto_aes_Mode_Ecb) ||
+                 (self->mode == crypto_aes_Mode_Cbc)) &&
+                (self->dir == crypto_aes_Direction_Decrypt)) {
                 // Skip processing here, will process in the next iteration or
                 // finalize
                 continue;
             }
 
-            crypto_util_memcpy(
-                self->result_buf_ptr,
-                self->buf,
-                CRYPTO_AES_BLOCK_U8_SIZE
-            );
+            memcpy(self->result_buf_ptr, self->buf, CRYPTO_AES_BLOCK_U8_SIZE);
             if (self->mode == crypto_aes_Mode_Ecb) {
                 crypto_aes_Handle_ecb_encrypt(self);
             } else if (self->mode == crypto_aes_Mode_Cbc) {
@@ -482,7 +474,8 @@ crypto_aes_Ret crypto_aes_Handle_update(
             } else {
                 // Mode has been guarded when init
             }
-            self->result_buf_ptr += CRYPTO_AES_BLOCK_U8_SIZE;
+            self->result_buf_ptr =
+                &(self->result_buf_ptr[CRYPTO_AES_BLOCK_U8_SIZE]);
             self->result_len += CRYPTO_AES_BLOCK_U8_SIZE;
             self->buf_len = 0;
         }
@@ -502,7 +495,7 @@ crypto_aes_Ret crypto_aes_Handle_finalize(crypto_aes_Handle* self) {
     if ((self->mode == crypto_aes_Mode_Ecb) ||
         (self->mode == crypto_aes_Mode_Cbc)) {
         if (self->dir == crypto_aes_Direction_Encrypt) {
-            // PKCS#7 Padding — always applied, even for block-aligned input
+            // PKCS#7 Padding - always applied, even for block-aligned input
             // (which requires a full padding block).
             uint32_t padded_len = 0U;
             uint8_t padded_buf[CRYPTO_AES_BLOCK_U8_SIZE];
@@ -517,11 +510,7 @@ crypto_aes_Ret crypto_aes_Handle_finalize(crypto_aes_Handle* self) {
             );
 
             if (self->result_buf_capacity >= (self->result_len + padded_len)) {
-                crypto_util_memcpy(
-                    self->result_buf_ptr,
-                    padded_buf,
-                    padded_len
-                );
+                memcpy(self->result_buf_ptr, padded_buf, padded_len);
             } else {
                 return crypto_aes_Ret_BufferTooSmall;
             }
@@ -531,7 +520,7 @@ crypto_aes_Ret crypto_aes_Handle_finalize(crypto_aes_Handle* self) {
             } else {
                 crypto_aes_Handle_cbc_encrypt(self);
             }
-            self->result_buf_ptr += padded_len;
+            self->result_buf_ptr = &(self->result_buf_ptr[padded_len]);
             self->result_len += padded_len;
         } else {
             // PKCS#7 Unpadding
@@ -544,7 +533,7 @@ crypto_aes_Ret crypto_aes_Handle_finalize(crypto_aes_Handle* self) {
                 uint32_t unpadded_len = 0U;
                 uint8_t temp[CRYPTO_AES_BLOCK_U8_SIZE];
 
-                crypto_util_memcpy(temp, self->buf, CRYPTO_AES_BLOCK_U8_SIZE);
+                memcpy(temp, self->buf, CRYPTO_AES_BLOCK_U8_SIZE);
                 if (self->mode == crypto_aes_Mode_Ecb) {
                     crypto_aes_Handle_ecb_decrypt(self, temp);
                 } else {
@@ -565,7 +554,7 @@ crypto_aes_Ret crypto_aes_Handle_finalize(crypto_aes_Handle* self) {
                     goto cleanup;
                 }
 
-                self->result_buf_ptr += unpadded_len;
+                self->result_buf_ptr = &(self->result_buf_ptr[unpadded_len]);
                 self->result_len += unpadded_len;
             }
         }
@@ -574,17 +563,13 @@ crypto_aes_Ret crypto_aes_Handle_finalize(crypto_aes_Handle* self) {
 
             if (self->result_buf_capacity >=
                 (self->result_len + self->buf_len)) {
-                crypto_util_memcpy(
-                    self->result_buf_ptr,
-                    self->buf,
-                    self->buf_len
-                );
+                memcpy(self->result_buf_ptr, self->buf, self->buf_len);
             } else {
                 return crypto_aes_Ret_BufferTooSmall;
             }
 
             crypto_aes_Handle_ctr_xcrypt(self);
-            self->result_buf_ptr += self->buf_len;
+            self->result_buf_ptr = &(self->result_buf_ptr[self->buf_len]);
             self->result_len += self->buf_len;
         }
     } else {
@@ -593,9 +578,7 @@ crypto_aes_Ret crypto_aes_Handle_finalize(crypto_aes_Handle* self) {
 
 cleanup:
     // Securely wipe sensitive key material and internal state from memory
-
-    // FIXME: Fix it
-    // crypto_util_memset(self, 0, sizeof(crypto_aes_Handle));
+    memset(self, 0, sizeof(crypto_aes_Handle));
     return ret;
 }
 
@@ -610,7 +593,7 @@ static void crypto_aes_Handle_ecb_encrypt(crypto_aes_Handle* self) {
 }
 
 static void crypto_aes_Handle_ecb_decrypt(
-    crypto_aes_Handle* self,
+    const crypto_aes_Handle* self,
     uint8_t* buf_mut
 ) {
     crypto_aes_State state;
@@ -635,26 +618,28 @@ static void crypto_aes_Handle_cbc_encrypt(crypto_aes_Handle* self) {
 
 static void crypto_aes_Handle_cbc_decrypt(
     crypto_aes_Handle* self,
-    uint8_t* buf_mut
+    uint8_t* output_buf_ptr
 ) {
     uint32_t i;
     uint8_t store_next_iv_buf[CRYPTO_AES_BLOCK_U8_SIZE];
+    uint8_t* out_ptr = output_buf_ptr;
+
     for (i = 0; i < self->buf_len; i += CRYPTO_AES_BLOCK_U8_SIZE) {
-        memcpy(store_next_iv_buf, buf_mut, CRYPTO_AES_BLOCK_U8_SIZE);
+        memcpy(store_next_iv_buf, out_ptr, CRYPTO_AES_BLOCK_U8_SIZE);
         crypto_aes_State state;
-        memcpy((void*)&state, (void*)buf_mut, sizeof(state));
+        memcpy((void*)&state, (void*)out_ptr, sizeof(state));
         crypto_aes_Handle_inv_cipher(self, &state);
-        memcpy((void*)buf_mut, (void*)&state, sizeof(state));
-        crypto_aes_xor_with_iv(buf_mut, self->iv_buf);
+        memcpy((void*)out_ptr, (void*)&state, sizeof(state));
+        crypto_aes_xor_with_iv(out_ptr, self->iv_buf);
         memcpy(self->iv_buf, store_next_iv_buf, CRYPTO_AES_BLOCK_U8_SIZE);
-        buf_mut += CRYPTO_AES_BLOCK_U8_SIZE;
+        out_ptr = &out_ptr[CRYPTO_AES_BLOCK_U8_SIZE];
     }
 }
 
 static void crypto_aes_Handle_ctr_xcrypt(crypto_aes_Handle* self) {
     uint32_t i = 0U;
     uint8_t keystream_buf[CRYPTO_AES_BLOCK_U8_SIZE];
-    crypto_util_memset(keystream_buf, 0U, sizeof(keystream_buf));
+    memset(keystream_buf, 0, sizeof(keystream_buf));
 
     while (i < self->buf_len) {
         // Generate a new block of keystream
@@ -686,9 +671,9 @@ static void crypto_aes_Handle_ctr_xcrypt(crypto_aes_Handle* self) {
 }
 
 static void crypto_aes_Handle_add_round_key(
-    crypto_aes_Handle* self,
+    const crypto_aes_Handle* self,
     uint32_t round,
-    crypto_aes_State* state_mut
+    crypto_aes_State* state_ptr
 ) {
     uint32_t i = 0U;
     uint32_t j = 0U;
@@ -697,35 +682,35 @@ static void crypto_aes_Handle_add_round_key(
     for (i = 0U; i < 4U; i++) {
         // Iterate over rows within the column
         for (j = 0U; j < 4U; j++) {
-            state_mut->col[i].byte[j] ^=
+            state_ptr->col[i].byte[j] ^=
                 self->round_key_buf[(round * 16) + (i * 4) + j];
         }
     }
 }
 
 static void crypto_aes_Handle_cipher(
-    crypto_aes_Handle* self,
-    crypto_aes_State* state_mut
+    const crypto_aes_Handle* self,
+    crypto_aes_State* state_ptr
 ) {
     // Initial round: Add the first round key
-    crypto_aes_Handle_add_round_key(self, 0, state_mut);
+    crypto_aes_Handle_add_round_key(self, 0, state_ptr);
 
     // Main rounds: SubBytes, ShiftRows, MixColumns, AddRoundKey
     for (uint8_t round = 1; round < self->round_num; round++) {
-        crypto_aes_sub_bytes(state_mut);
-        crypto_aes_shift_rows(state_mut);
-        crypto_aes_mix_columns(state_mut);
-        crypto_aes_Handle_add_round_key(self, round, state_mut);
+        crypto_aes_sub_bytes(state_ptr);
+        crypto_aes_shift_rows(state_ptr);
+        crypto_aes_mix_columns(state_ptr);
+        crypto_aes_Handle_add_round_key(self, round, state_ptr);
     }
 
     // Final round: SubBytes, ShiftRows, AddRoundKey (No MixColumns)
-    crypto_aes_sub_bytes(state_mut);
-    crypto_aes_shift_rows(state_mut);
-    crypto_aes_Handle_add_round_key(self, self->round_num, state_mut);
+    crypto_aes_sub_bytes(state_ptr);
+    crypto_aes_shift_rows(state_ptr);
+    crypto_aes_Handle_add_round_key(self, self->round_num, state_ptr);
 }
 
 static void crypto_aes_Handle_inv_cipher(
-    crypto_aes_Handle* self,
+    const crypto_aes_Handle* self,
     crypto_aes_State* state_ptr
 ) {
     // Initial round: Add the last round key
@@ -762,14 +747,14 @@ static void crypto_aes_Handle_key_expansion(crypto_aes_Handle* self) {
     }
 
     // All other round keys are derived from the previous round keys.
-    for (i = key_u32_num; i < CRYPTO_AES_NB * (round_num + 1); i++) {
+    for (i = key_u32_num; i < (CRYPTO_AES_NB * (round_num + 1)); i++) {
         k = (i - 1) * 4;
         temp_word[0] = round_key_mut[k];
         temp_word[1] = round_key_mut[k + 1];
         temp_word[2] = round_key_mut[k + 2];
         temp_word[3] = round_key_mut[k + 3];
 
-        if (i % key_u32_num == 0) {
+        if ((i % key_u32_num) == 0) {
             // This function shifts the 4 bytes in a word to the left once.
             // [a0,a1,a2,a3] becomes [a1,a2,a3,a0]
             const uint8_t temp_byte = temp_word[0];
@@ -790,7 +775,7 @@ static void crypto_aes_Handle_key_expansion(crypto_aes_Handle* self) {
 
         // AES256, 256/32 = 8 words per key
         if (key_u32_num == 8) {
-            if (i % key_u32_num == 4) {
+            if ((i % key_u32_num) == 4) {
                 // Extra SubBytes step for AES-256
                 temp_word[0] = crypto_aes_sbox_tbl[temp_word[0]];
                 temp_word[1] = crypto_aes_sbox_tbl[temp_word[1]];
@@ -809,97 +794,100 @@ static void crypto_aes_Handle_key_expansion(crypto_aes_Handle* self) {
     }
 }
 
-static void crypto_aes_inv_sub_bytes(crypto_aes_State* state_mut) {
+static void crypto_aes_inv_sub_bytes(crypto_aes_State* state_ptr) {
     uint8_t i, j;
     for (i = 0; i < 4; i++) { // iterate over columns
         for (j = 0; j < 4; j++) { // iterate over rows
-            state_mut->col[i].byte[j] =
-                crypto_aes_rsbox_tbl[state_mut->col[i].byte[j]];
+            state_ptr->col[i].byte[j] =
+                crypto_aes_rsbox_tbl[state_ptr->col[i].byte[j]];
         }
     }
 }
 
-static void crypto_aes_xor_with_iv(uint8_t* buf_mut, const uint8_t* iv_ref) {
+static void crypto_aes_xor_with_iv(
+    uint8_t* buf_ptr,
+    const uint8_t* iv_buf_ptr
+) {
     uint8_t i;
     // The block in AES is always 128bit no matter the key size
     for (i = 0; i < CRYPTO_AES_BLOCK_U8_SIZE; i++) {
-        buf_mut[i] ^= iv_ref[i];
+        buf_ptr[i] ^= iv_buf_ptr[i];
     }
 }
 
-static void crypto_aes_sub_bytes(crypto_aes_State* state_mut) {
+static void crypto_aes_sub_bytes(crypto_aes_State* state_ptr) {
     uint8_t i, j;
     for (i = 0; i < 4; i++) { // iterate over columns
         for (j = 0; j < 4; j++) { // iterate over rows
-            state_mut->col[i].byte[j] =
-                crypto_aes_sbox_tbl[state_mut->col[i].byte[j]];
+            state_ptr->col[i].byte[j] =
+                crypto_aes_sbox_tbl[state_ptr->col[i].byte[j]];
         }
     }
 }
 
-static void crypto_aes_shift_rows(crypto_aes_State* state_mut) {
+static void crypto_aes_shift_rows(crypto_aes_State* state_ptr) {
     uint8_t temp;
 
     // Rotate first row 1 columns to left
-    temp = state_mut->col[0].byte[1];
-    state_mut->col[0].byte[1] = state_mut->col[1].byte[1];
-    state_mut->col[1].byte[1] = state_mut->col[2].byte[1];
-    state_mut->col[2].byte[1] = state_mut->col[3].byte[1];
-    state_mut->col[3].byte[1] = temp;
+    temp = state_ptr->col[0].byte[1];
+    state_ptr->col[0].byte[1] = state_ptr->col[1].byte[1];
+    state_ptr->col[1].byte[1] = state_ptr->col[2].byte[1];
+    state_ptr->col[2].byte[1] = state_ptr->col[3].byte[1];
+    state_ptr->col[3].byte[1] = temp;
 
     // Rotate second row 2 columns to left
-    temp = state_mut->col[0].byte[2];
-    state_mut->col[0].byte[2] = state_mut->col[2].byte[2];
-    state_mut->col[2].byte[2] = temp;
+    temp = state_ptr->col[0].byte[2];
+    state_ptr->col[0].byte[2] = state_ptr->col[2].byte[2];
+    state_ptr->col[2].byte[2] = temp;
 
-    temp = state_mut->col[1].byte[2];
-    state_mut->col[1].byte[2] = state_mut->col[3].byte[2];
-    state_mut->col[3].byte[2] = temp;
+    temp = state_ptr->col[1].byte[2];
+    state_ptr->col[1].byte[2] = state_ptr->col[3].byte[2];
+    state_ptr->col[3].byte[2] = temp;
 
     // Rotate third row 3 columns to left
-    temp = state_mut->col[0].byte[3];
-    state_mut->col[0].byte[3] = state_mut->col[3].byte[3];
-    state_mut->col[3].byte[3] = state_mut->col[2].byte[3];
-    state_mut->col[2].byte[3] = state_mut->col[1].byte[3];
-    state_mut->col[1].byte[3] = temp;
+    temp = state_ptr->col[0].byte[3];
+    state_ptr->col[0].byte[3] = state_ptr->col[3].byte[3];
+    state_ptr->col[3].byte[3] = state_ptr->col[2].byte[3];
+    state_ptr->col[2].byte[3] = state_ptr->col[1].byte[3];
+    state_ptr->col[1].byte[3] = temp;
 }
 
 static uint8_t crypto_aes_xtime(uint8_t x) {
     return ((x << 1U) ^ (((x >> 7U) & 1U) * 0x1bU));
 }
 
-static void crypto_aes_mix_columns(crypto_aes_State* state_mut) {
+static void crypto_aes_mix_columns(crypto_aes_State* state_ptr) {
     uint8_t i;
     uint8_t temp_col_xor; // XOR sum of all bytes in a column
     uint8_t temp_xor_adj; // XOR sum of adjacent bytes
     uint8_t original_col_0;
 
     for (i = 0; i < 4; i++) { // iterate over columns
-        original_col_0 = state_mut->col[i].byte[0];
+        original_col_0 = state_ptr->col[i].byte[0];
 
         // Calculate the XOR sum of all 4 bytes in the current column
-        temp_col_xor = state_mut->col[i].byte[0] ^ state_mut->col[i].byte[1] ^
-                       state_mut->col[i].byte[2] ^ state_mut->col[i].byte[3];
+        temp_col_xor = state_ptr->col[i].byte[0] ^ state_ptr->col[i].byte[1] ^
+                       state_ptr->col[i].byte[2] ^ state_ptr->col[i].byte[3];
 
         // Mix row 0
-        temp_xor_adj = state_mut->col[i].byte[0] ^ state_mut->col[i].byte[1];
+        temp_xor_adj = state_ptr->col[i].byte[0] ^ state_ptr->col[i].byte[1];
         temp_xor_adj = crypto_aes_xtime(temp_xor_adj);
-        state_mut->col[i].byte[0] ^= temp_xor_adj ^ temp_col_xor;
+        state_ptr->col[i].byte[0] ^= temp_xor_adj ^ temp_col_xor;
 
         // Mix row 1
-        temp_xor_adj = state_mut->col[i].byte[1] ^ state_mut->col[i].byte[2];
+        temp_xor_adj = state_ptr->col[i].byte[1] ^ state_ptr->col[i].byte[2];
         temp_xor_adj = crypto_aes_xtime(temp_xor_adj);
-        state_mut->col[i].byte[1] ^= temp_xor_adj ^ temp_col_xor;
+        state_ptr->col[i].byte[1] ^= temp_xor_adj ^ temp_col_xor;
 
         // Mix row 2
-        temp_xor_adj = state_mut->col[i].byte[2] ^ state_mut->col[i].byte[3];
+        temp_xor_adj = state_ptr->col[i].byte[2] ^ state_ptr->col[i].byte[3];
         temp_xor_adj = crypto_aes_xtime(temp_xor_adj);
-        state_mut->col[i].byte[2] ^= temp_xor_adj ^ temp_col_xor;
+        state_ptr->col[i].byte[2] ^= temp_xor_adj ^ temp_col_xor;
 
         // Mix row 3
-        temp_xor_adj = state_mut->col[i].byte[3] ^ original_col_0;
+        temp_xor_adj = state_ptr->col[i].byte[3] ^ original_col_0;
         temp_xor_adj = crypto_aes_xtime(temp_xor_adj);
-        state_mut->col[i].byte[3] ^= temp_xor_adj ^ temp_col_xor;
+        state_ptr->col[i].byte[3] ^= temp_xor_adj ^ temp_col_xor;
     }
 }
 
@@ -928,56 +916,56 @@ static uint8_t crypto_aes_multiply(uint8_t x, uint8_t y) {
     return result;
 }
 
-static void crypto_aes_inv_mix_columns(crypto_aes_State* state_mut) {
+static void crypto_aes_inv_mix_columns(crypto_aes_State* state_ptr) {
     int32_t i;
     uint8_t a, b, c, d;
 
     for (i = 0; i < 4; i++) { // iterate over columns
-        a = state_mut->col[i].byte[0];
-        b = state_mut->col[i].byte[1];
-        c = state_mut->col[i].byte[2];
-        d = state_mut->col[i].byte[3];
+        a = state_ptr->col[i].byte[0];
+        b = state_ptr->col[i].byte[1];
+        c = state_ptr->col[i].byte[2];
+        d = state_ptr->col[i].byte[3];
 
-        state_mut->col[i].byte[0] =
+        state_ptr->col[i].byte[0] =
             crypto_aes_multiply(a, 0x0e) ^ crypto_aes_multiply(b, 0x0b) ^
             crypto_aes_multiply(c, 0x0d) ^ crypto_aes_multiply(d, 0x09);
-        state_mut->col[i].byte[1] =
+        state_ptr->col[i].byte[1] =
             crypto_aes_multiply(a, 0x09) ^ crypto_aes_multiply(b, 0x0e) ^
             crypto_aes_multiply(c, 0x0b) ^ crypto_aes_multiply(d, 0x0d);
-        state_mut->col[i].byte[2] =
+        state_ptr->col[i].byte[2] =
             crypto_aes_multiply(a, 0x0d) ^ crypto_aes_multiply(b, 0x09) ^
             crypto_aes_multiply(c, 0x0e) ^ crypto_aes_multiply(d, 0x0b);
-        state_mut->col[i].byte[3] =
+        state_ptr->col[i].byte[3] =
             crypto_aes_multiply(a, 0x0b) ^ crypto_aes_multiply(b, 0x0d) ^
             crypto_aes_multiply(c, 0x09) ^ crypto_aes_multiply(d, 0x0e);
     }
 }
 
-static void crypto_aes_inv_shift_rows(crypto_aes_State* state_mut) {
+static void crypto_aes_inv_shift_rows(crypto_aes_State* state_ptr) {
     uint8_t temp;
 
     // Rotate first row 1 columns to right
-    temp = state_mut->col[3].byte[1];
-    state_mut->col[3].byte[1] = state_mut->col[2].byte[1];
-    state_mut->col[2].byte[1] = state_mut->col[1].byte[1];
-    state_mut->col[1].byte[1] = state_mut->col[0].byte[1];
-    state_mut->col[0].byte[1] = temp;
+    temp = state_ptr->col[3].byte[1];
+    state_ptr->col[3].byte[1] = state_ptr->col[2].byte[1];
+    state_ptr->col[2].byte[1] = state_ptr->col[1].byte[1];
+    state_ptr->col[1].byte[1] = state_ptr->col[0].byte[1];
+    state_ptr->col[0].byte[1] = temp;
 
     // Rotate second row 2 columns to right
-    temp = state_mut->col[0].byte[2];
-    state_mut->col[0].byte[2] = state_mut->col[2].byte[2];
-    state_mut->col[2].byte[2] = temp;
+    temp = state_ptr->col[0].byte[2];
+    state_ptr->col[0].byte[2] = state_ptr->col[2].byte[2];
+    state_ptr->col[2].byte[2] = temp;
 
-    temp = state_mut->col[1].byte[2];
-    state_mut->col[1].byte[2] = state_mut->col[3].byte[2];
-    state_mut->col[3].byte[2] = temp;
+    temp = state_ptr->col[1].byte[2];
+    state_ptr->col[1].byte[2] = state_ptr->col[3].byte[2];
+    state_ptr->col[3].byte[2] = temp;
 
     // Rotate third row 3 columns to right
-    temp = state_mut->col[0].byte[3];
-    state_mut->col[0].byte[3] = state_mut->col[1].byte[3];
-    state_mut->col[1].byte[3] = state_mut->col[2].byte[3];
-    state_mut->col[2].byte[3] = state_mut->col[3].byte[3];
-    state_mut->col[3].byte[3] = temp;
+    temp = state_ptr->col[0].byte[3];
+    state_ptr->col[0].byte[3] = state_ptr->col[1].byte[3];
+    state_ptr->col[1].byte[3] = state_ptr->col[2].byte[3];
+    state_ptr->col[2].byte[3] = state_ptr->col[3].byte[3];
+    state_ptr->col[3].byte[3] = temp;
 }
 
 //==============================================================================
