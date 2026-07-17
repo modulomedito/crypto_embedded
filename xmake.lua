@@ -15,7 +15,7 @@ add_files("src/**.c")
 add_headerfiles("src/**.h")
 
 -- Initialize the include directories list with base folders
-local includes = { ".", "src", "test" }
+local includes = { ".", "src" }
 -- Dynamically find and add all subdirectories in src to the includes list
 for _, dir in ipairs(os.dirs("src/**")) do
     table.insert(includes, dir)
@@ -38,7 +38,7 @@ add_tests("crypto_embedded_test", {
     -- The main test source file
     files = { "test/test.c" },
     -- Reuse the same include directories as the main target
-    includes = includes,
+    includes = { ".", "src", "test" },
 })
 
 -- Optimization and linker flags for release mode

@@ -12,6 +12,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "crypto_aes_test.h"
+
 //==============================================================================
 // IMPORTED SWITCH CHECK
 //==============================================================================
@@ -24,8 +26,7 @@
 
 #define TEST_RUN(mod)                                                          \
     do {                                                                       \
-        extern int32_t TEST_CONCAT(mod, _test)(void);                          \
-        int32_t result = TEST_CONCAT(mod, _test)();                            \
+        int32_t result = TEST_CONCAT(mod, _test_main)();                       \
         if (result != 0) {                                                     \
             printf("Test " #mod " FAILED! (Failed at line %d)\n", result);     \
             test_failed_cnt++;                                                 \
