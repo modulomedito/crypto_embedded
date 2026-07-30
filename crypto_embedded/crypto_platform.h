@@ -76,6 +76,24 @@ static inline void crypto_platform_assert(bool cond) {
 #endif
 }
 
+static inline void crypto_platform_panic(void) {
+#if defined(__linux__) || defined(__APPLE__) || defined(_WIN32) // Host
+    assert(0);
+#elif defined(__HIGHTEC__) // HighTec (GCC-based, TriCore/Aurix)
+#define crypto_platform_assert(cond)
+    __builtin_trap();
+#elif defined(__TASKING__) // TASKING
+    __debug();
+#elif defined(__TI_COMPILER_VERSION__) // TI C2000
+    asm(" ESTOP0");
+#elif defined(__GNUC__) // Generic GCC (ARM, RISC-V, etc.)
+    __builtin_trap();
+#else // Unknown platform: infinite loop
+    for (;;) {
+    }
+#endif
+}
+
 //==============================================================================
 // PUBLIC INLINE FUNCTION DEFINITION
 //==============================================================================

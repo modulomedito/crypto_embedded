@@ -35,26 +35,26 @@ extern "C" {
 // PUBLIC ENUM
 //==============================================================================
 typedef enum {
-    crypto_aes_Ret_Ok = 0U,
+    crypto_aes_Ret_Ok = 0,
     crypto_aes_Ret_InvalidArg,
     crypto_aes_Ret_BufferTooSmall,
     crypto_aes_Ret_CipherTextNotAligned,
 } crypto_aes_Ret;
 
 typedef enum {
-    crypto_aes_KeyLen_128 = 0U,
+    crypto_aes_KeyLen_128 = 0,
     crypto_aes_KeyLen_192,
     crypto_aes_KeyLen_256,
 } crypto_aes_KeyLen;
 
 typedef enum {
-    crypto_aes_Mode_Ecb = 0U,
+    crypto_aes_Mode_Ecb = 0,
     crypto_aes_Mode_Cbc,
     crypto_aes_Mode_Ctr,
 } crypto_aes_Mode;
 
 typedef enum {
-    crypto_aes_Direction_Encrypt = 0U,
+    crypto_aes_Direction_Encrypt = 0,
     crypto_aes_Direction_Decrypt,
 } crypto_aes_Direction;
 
