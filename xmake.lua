@@ -9,15 +9,15 @@ target("crypto_embedded")
 set_kind("shared")
 -- Set the C and C++ language standards
 set_languages("c99", "c++17")
--- Recursively add all C source files from lib and src directories
-add_files("src/**.c")
--- Recursively add all header files from lib and src directories
-add_headerfiles("src/**.h")
+-- Recursively add all C source files from lib and crypto_embedded directories
+add_files("crypto_embedded/**.c")
+-- Recursively add all header files from lib and crypto_embedded directories
+add_headerfiles("crypto_embedded/**.h")
 
 -- Initialize the include directories list with base folders
-local includes = { ".", "src" }
--- Dynamically find and add all subdirectories in src to the includes list
-for _, dir in ipairs(os.dirs("src/**")) do
+local includes = { ".", "crypto_embedded" }
+-- Dynamically find and add all subdirectories in crypto_embedded to the includes list
+for _, dir in ipairs(os.dirs("crypto_embedded/**")) do
     table.insert(includes, dir)
 end
 
@@ -38,7 +38,7 @@ add_tests("crypto_embedded_test", {
     -- The main test source file
     files = { "test/test.c" },
     -- Reuse the same include directories as the main target
-    includes = { ".", "src", "test" },
+    includes = { ".", "crypto_embedded", "test" },
 })
 
 -- Optimization and linker flags for release mode
