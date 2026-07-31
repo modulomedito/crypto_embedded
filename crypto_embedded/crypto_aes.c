@@ -10,6 +10,7 @@
 //==============================================================================
 #include "crypto_aes.h"
 #include "crypto_padding.h"
+#include "crypto_util.h"
 
 //==============================================================================
 // IMPORTED SWITCH CHECK
@@ -40,9 +41,16 @@ typedef struct {
     uint8_t byte[4]; // 4 bytes in a column
 } crypto_aes_StateColumn;
 
+CRYPTO_UTIL_STATIC_ASSERT(
+    crypto_aes_StateColumn,
+    sizeof(crypto_aes_StateColumn) == 4U
+);
+
 typedef struct {
     crypto_aes_StateColumn col[4]; // 4 columns in a state
 } crypto_aes_State;
+
+CRYPTO_UTIL_STATIC_ASSERT(crypto_aes_State, sizeof(crypto_aes_State) == 16U);
 
 //==============================================================================
 // PRIVATE UNION

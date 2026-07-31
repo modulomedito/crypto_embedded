@@ -9,7 +9,6 @@
 // INCLUDE
 //==============================================================================
 #include "crypto_padding.h"
-#include "crypto_platform.h"
 #include "crypto_util.h"
 #include <string.h>
 
@@ -65,12 +64,12 @@
 /// @param[out] output_len_mut  Actual padded output length
 /// @return crypto_padding_Ret_Ok on success
 crypto_padding_Ret crypto_padding_pkcs7_pad(
-    const uint8_t* input_buf_ptr,
+    const uint8_t *input_buf_ptr,
     uint32_t input_num,
     uint8_t block_size,
-    uint8_t* output_buf_ptr,
+    uint8_t *output_buf_ptr,
     uint32_t output_capacity,
-    uint32_t* output_num_ptr
+    uint32_t *output_num_ptr
 ) {
     uint8_t pad_val = 0U;
     uint32_t padded_len = 0U;
@@ -78,7 +77,7 @@ crypto_padding_Ret crypto_padding_pkcs7_pad(
     if ((input_buf_ptr == NULL) || //
         (output_buf_ptr == NULL) || //
         (output_num_ptr == NULL)) {
-        crypto_platform_panic();
+        crypto_util_panic();
         return crypto_padding_Ret_InvalidArg;
     }
 
@@ -113,26 +112,26 @@ crypto_padding_Ret crypto_padding_pkcs7_pad(
 /// @param[out] output_len_mut  Actual unpadded output length
 /// @return crypto_padding_Ret_Ok on success, BadPadding if validation fails
 crypto_padding_Ret crypto_padding_pkcs7_unpad(
-    const uint8_t* input_buf_ptr,
+    const uint8_t *input_buf_ptr,
     uint32_t input_num,
     uint8_t block_size,
-    uint8_t* output_buf_ptr,
+    uint8_t *output_buf_ptr,
     uint32_t output_capacity,
-    uint32_t* output_num_ptr
+    uint32_t *output_num_ptr
 ) {
     uint8_t pad_val = 0U;
     uint32_t i = 0U;
-    const uint8_t* pad_start_ptr = NULL;
+    const uint8_t *pad_start_ptr = NULL;
 
     if ((input_buf_ptr == NULL) || //
         (output_buf_ptr == NULL) || //
         (output_num_ptr == NULL)) {
-        crypto_platform_panic();
+        crypto_util_panic();
         return crypto_padding_Ret_InvalidArg;
     }
 
     if ((input_num == 0U) || ((input_num % (uint32_t)block_size) != 0U)) {
-        crypto_platform_panic();
+        crypto_util_panic();
         return crypto_padding_Ret_BadPadding;
     }
 

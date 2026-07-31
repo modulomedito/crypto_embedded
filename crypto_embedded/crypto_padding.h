@@ -32,7 +32,7 @@ extern "C" {
 // PUBLIC ENUM
 //==============================================================================
 typedef enum {
-    crypto_padding_Ret_Ok = 0U,
+    crypto_padding_Ret_Ok = 0,
     crypto_padding_Ret_InvalidArg,
     crypto_padding_Ret_BufferTooSmall,
     crypto_padding_Ret_BadPadding,
@@ -54,20 +54,20 @@ typedef enum {
 // PUBLIC FUNCTION DECLARATION
 //==============================================================================
 crypto_padding_Ret crypto_padding_pkcs7_pad(
-    const uint8_t* input_buf_ptr,
+    const uint8_t *input_buf_ptr,
     uint32_t input_num,
     uint8_t block_size,
-    uint8_t* output_buf_ptr,
+    uint8_t *output_buf_ptr,
     uint32_t output_capacity,
-    uint32_t* output_num_ptr
+    uint32_t *output_num_ptr
 );
 crypto_padding_Ret crypto_padding_pkcs7_unpad(
-    const uint8_t* input_buf_ptr,
+    const uint8_t *input_buf_ptr,
     uint32_t input_num,
     uint8_t block_size,
-    uint8_t* output_buf_ptr,
+    uint8_t *output_buf_ptr,
     uint32_t output_capacity,
-    uint32_t* output_num_ptr
+    uint32_t *output_num_ptr
 );
 
 //==============================================================================

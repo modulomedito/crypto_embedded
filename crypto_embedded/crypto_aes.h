@@ -16,6 +16,7 @@ extern "C" {
 //==============================================================================
 // INCLUDE
 //==============================================================================
+#include "crypto_util.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -61,26 +62,28 @@ typedef enum {
 //==============================================================================
 // PUBLIC STRUCT
 //==============================================================================
+/// Use the maxium key exp size for compatibility
+/// - AES128, key len = 16x8, key exp size = 176x8
+/// - AES192, key len = 24x8, key exp size = 208x8
+/// - AES256, key len = 32x8, key exp size = 240x8
 typedef struct {
-    /// Use the maxium key exp size for compatibility
-    /// - AES128, key len = 16x8, key exp size = 176x8
-    /// - AES192, key len = 24x8, key exp size = 208x8
-    /// - AES256, key len = 32x8, key exp size = 240x8
-    uint8_t round_key_buf[240];
-    uint8_t iv_buf[CRYPTO_AES_BLOCK_U8_SIZE];
-    uint8_t buf[CRYPTO_AES_BLOCK_U8_SIZE];
-    crypto_aes_KeyLen keylen;
-    crypto_aes_Mode mode;
-    crypto_aes_Direction dir;
-    const uint8_t* key_buf_ptr;
-    const uint8_t* iv_buf_ptr;
+    const uint8_t *iv_buf_ptr;
+    const uint8_t *key_buf_ptr;
+    uint8_t *result_buf_ptr;
+    uint32_t buf_len;
     uint32_t key_u32_num;
-    uint32_t round_num;
-    uint8_t* result_buf_ptr;
     uint32_t result_buf_capacity;
     uint32_t result_len;
-    uint32_t buf_len;
+    uint32_t round_num;
+    crypto_aes_Direction dir;
+    crypto_aes_KeyLen keylen;
+    crypto_aes_Mode mode;
+    uint8_t buf[CRYPTO_AES_BLOCK_U8_SIZE];
+    uint8_t iv_buf[CRYPTO_AES_BLOCK_U8_SIZE];
+    uint8_t round_key_buf[240];
 } crypto_aes_Handle;
+
+CRYPTO_UTIL_STATIC_ASSERT(crypto_aes_Handle, sizeof(crypto_aes_Handle) == 308U);
 
 //==============================================================================
 // PUBLIC UNION
@@ -97,47 +100,47 @@ typedef struct {
 extern crypto_aes_Ret crypto_aes_encrypt(
     crypto_aes_KeyLen keylen,
     crypto_aes_Mode mode,
-    const uint8_t* input_buf_ptr,
+    const uint8_t *input_buf_ptr,
     uint32_t input_num,
-    const uint8_t* key_buf_ptr,
+    const uint8_t *key_buf_ptr,
     uint32_t key_buf_capacity,
-    const uint8_t* iv_buf_ptr,
+    const uint8_t *iv_buf_ptr,
     uint32_t iv_buf_capacity,
-    uint8_t* output_buf_ptr,
+    uint8_t *output_buf_ptr,
     uint32_t output_buf_capacity
 );
 extern crypto_aes_Ret crypto_aes_decrypt(
     crypto_aes_KeyLen keylen,
     crypto_aes_Mode mode,
-    const uint8_t* input_buf_ptr,
+    const uint8_t *input_buf_ptr,
     uint32_t input_num,
-    const uint8_t* key_buf_ptr,
+    const uint8_t *key_buf_ptr,
     uint32_t key_buf_capacity,
-    const uint8_t* iv_buf_ptr,
+    const uint8_t *iv_buf_ptr,
     uint32_t iv_buf_capacity,
-    uint8_t* output_buf_ptr,
+    uint8_t *output_buf_ptr,
     uint32_t output_buf_capacity
 );
 
 // Asynchronous APIs
 extern crypto_aes_Ret crypto_aes_Handle_init(
-    crypto_aes_Handle* self,
+    crypto_aes_Handle *self,
     crypto_aes_KeyLen keylen,
     crypto_aes_Mode mode,
     crypto_aes_Direction dir,
-    const uint8_t* key_buf_ptr,
+    const uint8_t *key_buf_ptr,
     uint32_t key_buf_capacity,
-    const uint8_t* iv_buf_ptr,
+    const uint8_t *iv_buf_ptr,
     uint32_t iv_buf_capacity,
-    uint8_t* output_buf_ptr,
+    uint8_t *output_buf_ptr,
     uint32_t output_buf_capacity
 );
 extern crypto_aes_Ret crypto_aes_Handle_update(
-    crypto_aes_Handle* self,
-    const uint8_t* input_buf_ptr,
+    crypto_aes_Handle *self,
+    const uint8_t *input_buf_ptr,
     uint32_t input_num
 );
-extern crypto_aes_Ret crypto_aes_Handle_finalize(crypto_aes_Handle* self);
+extern crypto_aes_Ret crypto_aes_Handle_finalize(crypto_aes_Handle *self);
 
 //==============================================================================
 // PUBLIC INLINE FUNCTION DEFINITION
