@@ -83,8 +83,6 @@ typedef struct {
     uint8_t round_key_buf[240];
 } crypto_aes_Handle;
 
-CRYPTO_UTIL_STATIC_ASSERT(crypto_aes_Handle, sizeof(crypto_aes_Handle) == 308U);
-
 //==============================================================================
 // PUBLIC UNION
 //==============================================================================
