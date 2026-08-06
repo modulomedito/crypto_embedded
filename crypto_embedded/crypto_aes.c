@@ -810,8 +810,11 @@ static void crypto_aes_Handle_key_expansion(crypto_aes_Handle *self) {
 
 static void crypto_aes_inv_sub_bytes(crypto_aes_State *state_ptr) {
     uint8_t i, j;
-    for (i = 0U; i < 4U; i++) { // iterate over columns
-        for (j = 0U; j < 4U; j++) { // iterate over rows
+
+    // Iterate over columns
+    for (i = 0U; i < 4U; i++) {
+        // Iterate over rows
+        for (j = 0U; j < 4U; j++) {
             state_ptr->col[i].byte[j] =
                 crypto_aes_rsbox_tbl[state_ptr->col[i].byte[j]];
         }
@@ -831,8 +834,11 @@ static void crypto_aes_xor_with_iv(
 
 static void crypto_aes_sub_bytes(crypto_aes_State *state_ptr) {
     uint8_t i, j;
-    for (i = 0U; i < 4U; i++) { // iterate over columns
-        for (j = 0U; j < 4U; j++) { // iterate over rows
+
+    // Iterate over columns
+    for (i = 0U; i < 4U; i++) {
+        // Iterate over rows
+        for (j = 0U; j < 4U; j++) {
             state_ptr->col[i].byte[j] =
                 crypto_aes_sbox_tbl[state_ptr->col[i].byte[j]];
         }
@@ -876,7 +882,8 @@ static void crypto_aes_mix_columns(crypto_aes_State *state_ptr) {
     uint8_t temp_xor_adj; // XOR sum of adjacent bytes
     uint8_t original_col_0;
 
-    for (i = 0U; i < 4U; i++) { // iterate over columns
+    // Iterate over columns
+    for (i = 0U; i < 4U; i++) {
         original_col_0 = state_ptr->col[i].byte[0];
 
         // Calculate the XOR sum of all 4 bytes in the current column
@@ -934,7 +941,8 @@ static void crypto_aes_inv_mix_columns(crypto_aes_State *state_ptr) {
     int32_t i;
     uint8_t a, b, c, d;
 
-    for (i = 0; i < 4; i++) { // iterate over columns
+    // Iterate over columns
+    for (i = 0; i < 4; i++) {
         a = state_ptr->col[i].byte[0];
         b = state_ptr->col[i].byte[1];
         c = state_ptr->col[i].byte[2];
