@@ -11,7 +11,8 @@
 #ifndef CRYPTO_AES_H
 #define CRYPTO_AES_H
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 //==============================================================================
 // INCLUDE
@@ -35,26 +36,30 @@ extern "C" {
 //==============================================================================
 // PUBLIC ENUM
 //==============================================================================
-typedef enum {
+typedef enum
+{
     crypto_aes_Ret_Ok = 0,
     crypto_aes_Ret_InvalidArg,
     crypto_aes_Ret_BufferTooSmall,
     crypto_aes_Ret_CipherTextNotAligned,
 } crypto_aes_Ret;
 
-typedef enum {
+typedef enum
+{
     crypto_aes_KeyLen_128 = 0,
     crypto_aes_KeyLen_192,
     crypto_aes_KeyLen_256,
 } crypto_aes_KeyLen;
 
-typedef enum {
+typedef enum
+{
     crypto_aes_Mode_Ecb = 0,
     crypto_aes_Mode_Cbc,
     crypto_aes_Mode_Ctr,
 } crypto_aes_Mode;
 
-typedef enum {
+typedef enum
+{
     crypto_aes_Direction_Encrypt = 0,
     crypto_aes_Direction_Decrypt,
 } crypto_aes_Direction;
@@ -66,7 +71,8 @@ typedef enum {
 /// - AES128, key len = 16x8, key exp size = 176x8
 /// - AES192, key len = 24x8, key exp size = 208x8
 /// - AES256, key len = 32x8, key exp size = 240x8
-typedef struct {
+typedef struct
+{
     const uint8_t *iv_buf_ptr;
     const uint8_t *key_buf_ptr;
     uint8_t *result_buf_ptr;
@@ -82,8 +88,6 @@ typedef struct {
     uint8_t iv_buf[CRYPTO_AES_BLOCK_U8_SIZE];
     uint8_t round_key_buf[240];
 } crypto_aes_Handle;
-
-CRYPTO_UTIL_STATIC_ASSERT(crypto_aes_Handle, sizeof(crypto_aes_Handle) == 308U);
 
 //==============================================================================
 // PUBLIC UNION

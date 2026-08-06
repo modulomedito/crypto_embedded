@@ -11,7 +11,8 @@
 #ifndef CRYPTO_PADDING_H
 #define CRYPTO_PADDING_H
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 //==============================================================================
 // INCLUDE
@@ -31,7 +32,8 @@ extern "C" {
 //==============================================================================
 // PUBLIC ENUM
 //==============================================================================
-typedef enum {
+typedef enum
+{
     crypto_padding_Ret_Ok = 0,
     crypto_padding_Ret_InvalidArg,
     crypto_padding_Ret_BufferTooSmall,

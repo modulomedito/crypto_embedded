@@ -11,6 +11,7 @@ AllowAllParametersOfDeclarationOnNextLine: false
 AllowShortFunctionsOnASingleLine: None
 BinPackArguments: false
 BinPackParameters: false
+BreakBeforeBraces: Allman
 ColumnLimit: 80
 IndentExternBlock: NoIndent
 IndentWidth: 4

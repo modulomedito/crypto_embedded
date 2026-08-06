@@ -37,7 +37,8 @@
 // In standard AES, the state is a 4x4 matrix of bytes.
 // Data is stored column by column (a word is a column).
 // Here we define a column (4 bytes) and the state (4 columns).
-typedef struct {
+typedef struct
+{
     uint8_t byte[4]; // 4 bytes in a column
 } crypto_aes_StateColumn;
 
@@ -46,7 +47,8 @@ CRYPTO_UTIL_STATIC_ASSERT(
     sizeof(crypto_aes_StateColumn) == 4U
 );
 
-typedef struct {
+typedef struct
+{
     crypto_aes_StateColumn col[4]; // 4 columns in a state
 } crypto_aes_State;
 
@@ -203,7 +205,8 @@ crypto_aes_Ret crypto_aes_encrypt(
     uint32_t iv_buf_capacity,
     uint8_t *output_buf_ptr,
     uint32_t output_buf_capacity
-) {
+)
+{
     crypto_aes_Handle handle;
     crypto_aes_Ret ret = crypto_aes_Ret_Ok;
 
@@ -211,10 +214,12 @@ crypto_aes_Ret crypto_aes_encrypt(
     // (worst case: block-aligned input).
     // Verify output buffer can hold the worst-case padded ciphertext.
     uint32_t min_out = input_num;
-    if ((mode == crypto_aes_Mode_Ecb) || (mode == crypto_aes_Mode_Cbc)) {
+    if ((mode == crypto_aes_Mode_Ecb) || (mode == crypto_aes_Mode_Cbc))
+    {
         min_out = input_num + CRYPTO_AES_BLOCK_U8_SIZE;
     }
-    if (output_buf_capacity < min_out) {
+    if (output_buf_capacity < min_out)
+    {
         return crypto_aes_Ret_BufferTooSmall;
     }
 
@@ -230,12 +235,14 @@ crypto_aes_Ret crypto_aes_encrypt(
         output_buf_ptr,
         output_buf_capacity
     );
-    if (ret != crypto_aes_Ret_Ok) {
+    if (ret != crypto_aes_Ret_Ok)
+    {
         return ret;
     }
 
     ret = crypto_aes_Handle_update(&handle, input_buf_ptr, input_num);
-    if (ret != crypto_aes_Ret_Ok) {
+    if (ret != crypto_aes_Ret_Ok)
+    {
         return ret;
     }
 
@@ -255,7 +262,8 @@ crypto_aes_Ret crypto_aes_decrypt(
     uint32_t iv_buf_capacity,
     uint8_t *output_buf_ptr,
     uint32_t output_buf_capacity
-) {
+)
+{
     crypto_aes_Handle handle;
     crypto_aes_Ret ret = crypto_aes_Ret_Ok;
 
@@ -271,7 +279,8 @@ crypto_aes_Ret crypto_aes_decrypt(
         output_buf_ptr,
         output_buf_capacity
     );
-    if (ret != crypto_aes_Ret_Ok) {
+    if (ret != crypto_aes_Ret_Ok)
+    {
         return ret;
     }
 
@@ -293,23 +302,28 @@ crypto_aes_Ret crypto_aes_Handle_init(
     uint32_t iv_buf_capacity,
     uint8_t *output_buf_ptr,
     uint32_t output_buf_capacity
-) {
+)
+{
     bool is_valid = true;
 
     // Check keylen, key_buf_capacity
-    switch (keylen) {
+    switch (keylen)
+    {
     case crypto_aes_KeyLen_128:
-        if (key_buf_capacity < (128U / 8U)) {
+        if (key_buf_capacity < (128U / 8U))
+        {
             is_valid = false;
         }
         break;
     case crypto_aes_KeyLen_192:
-        if (key_buf_capacity < (192U / 8U)) {
+        if (key_buf_capacity < (192U / 8U))
+        {
             is_valid = false;
         }
         break;
     case crypto_aes_KeyLen_256:
-        if (key_buf_capacity < (256U / 8U)) {
+        if (key_buf_capacity < (256U / 8U))
+        {
             is_valid = false;
         }
         break;
@@ -318,26 +332,35 @@ crypto_aes_Ret crypto_aes_Handle_init(
         break;
     }
 
-    if (is_valid == false) {
+    if (is_valid == false)
+    {
         return crypto_aes_Ret_InvalidArg;
     }
 
     // Check mode, iv_buf_ptr, iv_buf_capacity
-    if ((mode == crypto_aes_Mode_Cbc) || (mode == crypto_aes_Mode_Ctr)) {
-        if (iv_buf_ptr == NULL) {
+    if ((mode == crypto_aes_Mode_Cbc) || (mode == crypto_aes_Mode_Ctr))
+    {
+        if (iv_buf_ptr == NULL)
+        {
             return crypto_aes_Ret_InvalidArg;
         }
-        if (iv_buf_capacity < 16U) {
+        if (iv_buf_capacity < 16U)
+        {
             return crypto_aes_Ret_InvalidArg;
         }
-    } else if (mode != crypto_aes_Mode_Ecb) {
+    }
+    else if (mode != crypto_aes_Mode_Ecb)
+    {
         return crypto_aes_Ret_InvalidArg;
-    } else {
+    }
+    else
+    {
         // mode is Ecb, no IV needed
     }
 
     // Check dir
-    switch (dir) {
+    switch (dir)
+    {
     case crypto_aes_Direction_Encrypt:
     case crypto_aes_Direction_Decrypt:
         break;
@@ -345,24 +368,29 @@ crypto_aes_Ret crypto_aes_Handle_init(
         is_valid = false;
         break;
     }
-    if (is_valid == false) {
+    if (is_valid == false)
+    {
         return crypto_aes_Ret_InvalidArg;
     }
 
     // Check self, key_buf_ptr, output_buf_ptr
     if ((self == NULL) || //
         (key_buf_ptr == NULL) || //
-        (output_buf_ptr == NULL)) {
+        (output_buf_ptr == NULL))
+    {
         return crypto_aes_Ret_InvalidArg;
     }
 
     // Check output_buf_capacity
     // For ECB/CBC encrypt, PKCS#7 padding always produces at least one full
     // block (even for empty input), so output_buf_capacity must be >= 16.
-    if (dir == (crypto_aes_Direction)crypto_aes_Direction_Encrypt) {
+    if (dir == (crypto_aes_Direction)crypto_aes_Direction_Encrypt)
+    {
         if ((mode == crypto_aes_Mode_Ecb) || //
-            (mode == crypto_aes_Mode_Cbc)) {
-            if (output_buf_capacity < CRYPTO_AES_BLOCK_U8_SIZE) {
+            (mode == crypto_aes_Mode_Cbc))
+        {
+            if (output_buf_capacity < CRYPTO_AES_BLOCK_U8_SIZE)
+            {
                 return crypto_aes_Ret_BufferTooSmall;
             }
         }
@@ -377,12 +405,14 @@ crypto_aes_Ret crypto_aes_Handle_init(
     self->result_buf_capacity = output_buf_capacity;
     self->result_len = 0U;
     (void)memset(self->buf, 0, CRYPTO_AES_BLOCK_U8_SIZE);
-    if ((mode == crypto_aes_Mode_Cbc) || (mode == crypto_aes_Mode_Ctr)) {
+    if ((mode == crypto_aes_Mode_Cbc) || (mode == crypto_aes_Mode_Ctr))
+    {
         self->iv_buf_ptr = iv_buf_ptr;
         (void)memcpy(self->iv_buf, iv_buf_ptr, CRYPTO_AES_BLOCK_U8_SIZE);
     }
 
-    switch (keylen) {
+    switch (keylen)
+    {
     case crypto_aes_KeyLen_128:
         self->key_u32_num = 4U;
         self->round_num = 10U;
@@ -410,38 +440,48 @@ crypto_aes_Ret crypto_aes_Handle_update(
     crypto_aes_Handle *self,
     const uint8_t *input_buf_ptr,
     uint32_t input_num
-) {
+)
+{
     // Check self, input_buf_ptr
     if ((self == NULL) || //
-        (input_buf_ptr == NULL)) {
+        (input_buf_ptr == NULL))
+    {
         return crypto_aes_Ret_InvalidArg;
     }
 
     // Check input_num
-    if (input_num == 0U) {
+    if (input_num == 0U)
+    {
         return crypto_aes_Ret_Ok;
     }
 
     uint32_t in_pos = 0U;
 
-    while (in_pos < input_num) {
+    while (in_pos < input_num)
+    {
         // For ECB/CBC Decryption, we delay processing a full 16-byte block
         // until we know it's not the last block (i.e. more data is coming).
-        if (self->dir == (crypto_aes_Direction)crypto_aes_Direction_Decrypt) {
+        if (self->dir == (crypto_aes_Direction)crypto_aes_Direction_Decrypt)
+        {
             if ((self->mode == crypto_aes_Mode_Ecb) ||
-                (self->mode == crypto_aes_Mode_Cbc)) {
-                if (self->buf_len == CRYPTO_AES_BLOCK_U8_SIZE) {
+                (self->mode == crypto_aes_Mode_Cbc))
+            {
+                if (self->buf_len == CRYPTO_AES_BLOCK_U8_SIZE)
+                {
                     (void)memcpy(
                         self->result_buf_ptr,
                         self->buf,
                         CRYPTO_AES_BLOCK_U8_SIZE
                     );
-                    if (self->mode == crypto_aes_Mode_Ecb) {
+                    if (self->mode == crypto_aes_Mode_Ecb)
+                    {
                         crypto_aes_Handle_ecb_decrypt(
                             self,
                             self->result_buf_ptr
                         );
-                    } else {
+                    }
+                    else
+                    {
                         crypto_aes_Handle_cbc_decrypt(
                             self,
                             self->result_buf_ptr
@@ -464,14 +504,18 @@ crypto_aes_Ret crypto_aes_Handle_update(
         in_pos += copy_len;
 
         // For Encryption and CTR mode, process as soon as we have 16 bytes
-        if (self->buf_len == CRYPTO_AES_BLOCK_U8_SIZE) {
-            if (((self->mode == crypto_aes_Mode_Ecb) ||
-                 (self->mode == crypto_aes_Mode_Cbc)) &&
-                (self->dir ==
-                 (crypto_aes_Direction)crypto_aes_Direction_Decrypt)) {
-                // Skip processing here, will process in the next iteration or
-                // finalize
-                continue;
+        if (self->buf_len == CRYPTO_AES_BLOCK_U8_SIZE)
+        {
+            if ((self->mode == crypto_aes_Mode_Ecb) ||
+                (self->mode == crypto_aes_Mode_Cbc))
+            {
+                if (self->dir ==
+                    (crypto_aes_Direction)crypto_aes_Direction_Decrypt)
+                {
+                    // Skip processing here, will process in the next iteration
+                    // or finalize
+                    continue;
+                }
             }
 
             (void)memcpy(
@@ -479,13 +523,20 @@ crypto_aes_Ret crypto_aes_Handle_update(
                 self->buf,
                 CRYPTO_AES_BLOCK_U8_SIZE
             );
-            if (self->mode == crypto_aes_Mode_Ecb) {
+            if (self->mode == crypto_aes_Mode_Ecb)
+            {
                 crypto_aes_Handle_ecb_encrypt(self);
-            } else if (self->mode == crypto_aes_Mode_Cbc) {
+            }
+            else if (self->mode == crypto_aes_Mode_Cbc)
+            {
                 crypto_aes_Handle_cbc_encrypt(self);
-            } else if (self->mode == crypto_aes_Mode_Ctr) {
+            }
+            else if (self->mode == crypto_aes_Mode_Ctr)
+            {
                 crypto_aes_Handle_ctr_xcrypt(self);
-            } else {
+            }
+            else
+            {
                 // Mode has been guarded when init
             }
             self->result_buf_ptr =
@@ -499,16 +550,20 @@ crypto_aes_Ret crypto_aes_Handle_update(
 }
 
 /// For asynchronous encrypt/decrypt, finalize the encrypt/decrypt output
-crypto_aes_Ret crypto_aes_Handle_finalize(crypto_aes_Handle *self) {
-    if (self == NULL) {
+crypto_aes_Ret crypto_aes_Handle_finalize(crypto_aes_Handle *self)
+{
+    if (self == NULL)
+    {
         return crypto_aes_Ret_InvalidArg;
     }
 
     crypto_aes_Ret ret = crypto_aes_Ret_Ok;
 
     if ((self->mode == crypto_aes_Mode_Ecb) ||
-        (self->mode == crypto_aes_Mode_Cbc)) {
-        if (self->dir == (crypto_aes_Direction)crypto_aes_Direction_Encrypt) {
+        (self->mode == crypto_aes_Mode_Cbc))
+    {
+        if (self->dir == (crypto_aes_Direction)crypto_aes_Direction_Encrypt)
+        {
             // PKCS#7 Padding - always applied, even for block-aligned input
             // (which requires a full padding block).
             uint32_t padded_len = 0U;
@@ -523,34 +578,47 @@ crypto_aes_Ret crypto_aes_Handle_finalize(crypto_aes_Handle *self) {
                 &padded_len
             );
 
-            if (self->result_buf_capacity >= (self->result_len + padded_len)) {
+            if (self->result_buf_capacity >= (self->result_len + padded_len))
+            {
                 (void)memcpy(self->result_buf_ptr, padded_buf, padded_len);
-            } else {
+            }
+            else
+            {
                 return crypto_aes_Ret_BufferTooSmall;
             }
 
-            if (self->mode == crypto_aes_Mode_Ecb) {
+            if (self->mode == crypto_aes_Mode_Ecb)
+            {
                 crypto_aes_Handle_ecb_encrypt(self);
-            } else {
+            }
+            else
+            {
                 crypto_aes_Handle_cbc_encrypt(self);
             }
             self->result_buf_ptr = &(self->result_buf_ptr[padded_len]);
             self->result_len += padded_len;
-        } else {
+        }
+        else
+        {
             // PKCS#7 Unpadding
             if ((self->buf_len != 0U) &&
-                (self->buf_len != CRYPTO_AES_BLOCK_U8_SIZE)) {
+                (self->buf_len != CRYPTO_AES_BLOCK_U8_SIZE))
+            {
                 ret = crypto_aes_Ret_CipherTextNotAligned;
                 goto cleanup;
             }
-            if (self->buf_len == CRYPTO_AES_BLOCK_U8_SIZE) {
+            if (self->buf_len == CRYPTO_AES_BLOCK_U8_SIZE)
+            {
                 uint32_t unpadded_len = 0U;
                 uint8_t temp[CRYPTO_AES_BLOCK_U8_SIZE];
 
                 (void)memcpy(temp, self->buf, CRYPTO_AES_BLOCK_U8_SIZE);
-                if (self->mode == crypto_aes_Mode_Ecb) {
+                if (self->mode == crypto_aes_Mode_Ecb)
+                {
                     crypto_aes_Handle_ecb_decrypt(self, temp);
-                } else {
+                }
+                else
+                {
                     crypto_aes_Handle_cbc_decrypt(self, temp);
                 }
 
@@ -563,7 +631,8 @@ crypto_aes_Ret crypto_aes_Handle_finalize(crypto_aes_Handle *self) {
                     &unpadded_len
                 );
 
-                if (pad_ret != crypto_padding_Ret_Ok) {
+                if (pad_ret != crypto_padding_Ret_Ok)
+                {
                     ret = crypto_aes_Ret_CipherTextNotAligned;
                     goto cleanup;
                 }
@@ -572,13 +641,18 @@ crypto_aes_Ret crypto_aes_Handle_finalize(crypto_aes_Handle *self) {
                 self->result_len += unpadded_len;
             }
         }
-    } else if (self->mode == crypto_aes_Mode_Ctr) {
-        if (self->buf_len > 0U) {
+    }
+    else if (self->mode == crypto_aes_Mode_Ctr)
+    {
+        if (self->buf_len > 0U)
+        {
 
-            if (self->result_buf_capacity >=
-                (self->result_len + self->buf_len)) {
+            if (self->result_buf_capacity >= (self->result_len + self->buf_len))
+            {
                 (void)memcpy(self->result_buf_ptr, self->buf, self->buf_len);
-            } else {
+            }
+            else
+            {
                 return crypto_aes_Ret_BufferTooSmall;
             }
 
@@ -586,7 +660,9 @@ crypto_aes_Ret crypto_aes_Handle_finalize(crypto_aes_Handle *self) {
             self->result_buf_ptr = &(self->result_buf_ptr[self->buf_len]);
             self->result_len += self->buf_len;
         }
-    } else {
+    }
+    else
+    {
         // Mode has been guarded when init
     }
 
@@ -599,7 +675,8 @@ cleanup:
 //==============================================================================
 // PRIVATE FUNCTION DEFINITION
 //==============================================================================
-static void crypto_aes_Handle_ecb_encrypt(crypto_aes_Handle *self) {
+static void crypto_aes_Handle_ecb_encrypt(crypto_aes_Handle *self)
+{
     crypto_aes_State state;
     (void)memcpy((uint8_t *)&state, self->result_buf_ptr, sizeof(state));
     crypto_aes_Handle_cipher(self, &state);
@@ -609,14 +686,16 @@ static void crypto_aes_Handle_ecb_encrypt(crypto_aes_Handle *self) {
 static void crypto_aes_Handle_ecb_decrypt(
     const crypto_aes_Handle *self,
     uint8_t *buf_mut
-) {
+)
+{
     crypto_aes_State state;
     (void)memcpy((uint8_t *)&state, buf_mut, sizeof(state));
     crypto_aes_Handle_inv_cipher(self, &state);
     (void)memcpy(buf_mut, (uint8_t *)&state, sizeof(state));
 }
 
-static void crypto_aes_Handle_cbc_encrypt(crypto_aes_Handle *self) {
+static void crypto_aes_Handle_cbc_encrypt(crypto_aes_Handle *self)
+{
     uint8_t *buf_mut = self->result_buf_ptr;
     uint8_t *iv_mut = self->iv_buf;
     crypto_aes_State state;
@@ -633,12 +712,14 @@ static void crypto_aes_Handle_cbc_encrypt(crypto_aes_Handle *self) {
 static void crypto_aes_Handle_cbc_decrypt(
     crypto_aes_Handle *self,
     uint8_t *output_buf_ptr
-) {
+)
+{
     uint32_t i;
     uint8_t store_next_iv_buf[CRYPTO_AES_BLOCK_U8_SIZE];
     uint8_t *out_ptr = output_buf_ptr;
 
-    for (i = 0; i < self->buf_len; i += CRYPTO_AES_BLOCK_U8_SIZE) {
+    for (i = 0; i < self->buf_len; i += CRYPTO_AES_BLOCK_U8_SIZE)
+    {
         (void)memcpy(store_next_iv_buf, out_ptr, CRYPTO_AES_BLOCK_U8_SIZE);
         crypto_aes_State state;
         (void)memcpy((uint8_t *)&state, out_ptr, sizeof(state));
@@ -650,12 +731,14 @@ static void crypto_aes_Handle_cbc_decrypt(
     }
 }
 
-static void crypto_aes_Handle_ctr_xcrypt(crypto_aes_Handle *self) {
+static void crypto_aes_Handle_ctr_xcrypt(crypto_aes_Handle *self)
+{
     uint32_t i = 0U;
     uint8_t keystream_buf[CRYPTO_AES_BLOCK_U8_SIZE];
     (void)memset(keystream_buf, 0, sizeof(keystream_buf));
 
-    while (i < self->buf_len) {
+    while (i < self->buf_len)
+    {
         // Generate a new block of keystream
         crypto_aes_State state;
         (void)memcpy(keystream_buf, self->iv_buf, CRYPTO_AES_BLOCK_U8_SIZE);
@@ -664,20 +747,24 @@ static void crypto_aes_Handle_ctr_xcrypt(crypto_aes_Handle *self) {
         (void)memcpy(keystream_buf, (uint8_t *)&state, sizeof(state));
 
         // Increment the IV (Counter) for the next block
-        for (uint32_t j = CRYPTO_AES_BLOCK_U8_SIZE; j > 0U; j--) {
+        for (uint32_t j = CRYPTO_AES_BLOCK_U8_SIZE; j > 0U; j--)
+        {
             self->iv_buf[j - 1U]++;
-            if (self->iv_buf[j - 1U] != 0U) {
+            if (self->iv_buf[j - 1U] != 0U)
+            {
                 break;
             }
         }
 
         // XOR the keystream with the data
         uint32_t bytes_to_process = self->buf_len - i;
-        if (bytes_to_process > CRYPTO_AES_BLOCK_U8_SIZE) {
+        if (bytes_to_process > CRYPTO_AES_BLOCK_U8_SIZE)
+        {
             bytes_to_process = CRYPTO_AES_BLOCK_U8_SIZE;
         }
 
-        for (uint32_t bi = 0U; bi < bytes_to_process; bi++) {
+        for (uint32_t bi = 0U; bi < bytes_to_process; bi++)
+        {
             self->result_buf_ptr[i] ^= keystream_buf[bi];
             i++;
         }
@@ -688,14 +775,17 @@ static void crypto_aes_Handle_add_round_key(
     const crypto_aes_Handle *self,
     uint32_t round,
     crypto_aes_State *state_ptr
-) {
+)
+{
     uint32_t i = 0U;
     uint32_t j = 0U;
 
     // Iterate over columns
-    for (i = 0U; i < 4U; i++) {
+    for (i = 0U; i < 4U; i++)
+    {
         // Iterate over rows within the column
-        for (j = 0U; j < 4U; j++) {
+        for (j = 0U; j < 4U; j++)
+        {
             state_ptr->col[i].byte[j] ^=
                 self->round_key_buf[(round * 16U) + (i * 4U) + j];
         }
@@ -705,12 +795,14 @@ static void crypto_aes_Handle_add_round_key(
 static void crypto_aes_Handle_cipher(
     const crypto_aes_Handle *self,
     crypto_aes_State *state_ptr
-) {
+)
+{
     // Initial round: Add the first round key
     crypto_aes_Handle_add_round_key(self, 0, state_ptr);
 
     // Main rounds: SubBytes, ShiftRows, MixColumns, AddRoundKey
-    for (uint8_t round = 1; round < self->round_num; round++) {
+    for (uint8_t round = 1; round < self->round_num; round++)
+    {
         crypto_aes_sub_bytes(state_ptr);
         crypto_aes_shift_rows(state_ptr);
         crypto_aes_mix_columns(state_ptr);
@@ -726,12 +818,14 @@ static void crypto_aes_Handle_cipher(
 static void crypto_aes_Handle_inv_cipher(
     const crypto_aes_Handle *self,
     crypto_aes_State *state_ptr
-) {
+)
+{
     // Initial round: Add the last round key
     crypto_aes_Handle_add_round_key(self, self->round_num, state_ptr);
 
     // Main rounds: InvShiftRows, InvSubBytes, AddRoundKey, InvMixColumns
-    for (uint32_t round = (self->round_num - 1U); round > 0U; round--) {
+    for (uint32_t round = (self->round_num - 1U); round > 0U; round--)
+    {
         crypto_aes_inv_shift_rows(state_ptr);
         crypto_aes_inv_sub_bytes(state_ptr);
         crypto_aes_Handle_add_round_key(self, round, state_ptr);
@@ -744,7 +838,8 @@ static void crypto_aes_Handle_inv_cipher(
     crypto_aes_Handle_add_round_key(self, 0, state_ptr);
 }
 
-static void crypto_aes_Handle_key_expansion(crypto_aes_Handle *self) {
+static void crypto_aes_Handle_key_expansion(crypto_aes_Handle *self)
+{
     uint32_t i, j, k;
     uint8_t temp_word[4];
     uint8_t *round_key_mut = self->round_key_buf;
@@ -753,7 +848,8 @@ static void crypto_aes_Handle_key_expansion(crypto_aes_Handle *self) {
     uint32_t round_num = self->round_num;
 
     // The first round key is the key itself.
-    for (i = 0; i < key_u32_num; i++) {
+    for (i = 0; i < key_u32_num; i++)
+    {
         round_key_mut[(i * 4U)] = key_ref[(i * 4U)];
         round_key_mut[(i * 4U) + 1U] = key_ref[(i * 4U) + 1U];
         round_key_mut[(i * 4U) + 2U] = key_ref[(i * 4U) + 2U];
@@ -761,14 +857,16 @@ static void crypto_aes_Handle_key_expansion(crypto_aes_Handle *self) {
     }
 
     // All other round keys are derived from the previous round keys.
-    for (i = key_u32_num; i < (CRYPTO_AES_NB * (round_num + 1U)); i++) {
+    for (i = key_u32_num; i < (CRYPTO_AES_NB * (round_num + 1U)); i++)
+    {
         k = (i - 1U) * 4U;
         temp_word[0] = round_key_mut[k];
         temp_word[1] = round_key_mut[k + 1U];
         temp_word[2] = round_key_mut[k + 2U];
         temp_word[3] = round_key_mut[k + 3U];
 
-        if ((i % key_u32_num) == 0U) {
+        if ((i % key_u32_num) == 0U)
+        {
             // This function shifts the 4 bytes in a word to the left once.
             // [a0,a1,a2,a3] becomes [a1,a2,a3,a0]
             const uint8_t temp_byte = temp_word[0];
@@ -788,8 +886,10 @@ static void crypto_aes_Handle_key_expansion(crypto_aes_Handle *self) {
         }
 
         // AES256, 256/32 = 8 words per key
-        if (key_u32_num == 8U) {
-            if ((i % key_u32_num) == 4U) {
+        if (key_u32_num == 8U)
+        {
+            if ((i % key_u32_num) == 4U)
+            {
                 // Extra SubBytes step for AES-256
                 temp_word[0] = crypto_aes_sbox_tbl[temp_word[0]];
                 temp_word[1] = crypto_aes_sbox_tbl[temp_word[1]];
@@ -808,38 +908,51 @@ static void crypto_aes_Handle_key_expansion(crypto_aes_Handle *self) {
     }
 }
 
-static void crypto_aes_inv_sub_bytes(crypto_aes_State *state_ptr) {
+static void crypto_aes_inv_sub_bytes(crypto_aes_State *state_ptr)
+{
     uint8_t i, j;
-    for (i = 0U; i < 4U; i++) { // iterate over columns
-        for (j = 0U; j < 4U; j++) { // iterate over rows
+
+    // iterate over columns
+    for (i = 0U; i < 4U; i++)
+    {
+        // iterate over rows
+        for (j = 0U; j < 4U; j++)
+        {
             state_ptr->col[i].byte[j] =
                 crypto_aes_rsbox_tbl[state_ptr->col[i].byte[j]];
         }
     }
 }
 
-static void crypto_aes_xor_with_iv(
-    uint8_t *buf_ptr,
-    const uint8_t *iv_buf_ptr
-) {
+static void crypto_aes_xor_with_iv(uint8_t *buf_ptr, const uint8_t *iv_buf_ptr)
+{
     uint8_t i;
+
     // The block in AES is always 128bit no matter the key size
-    for (i = 0; i < CRYPTO_AES_BLOCK_U8_SIZE; i++) {
+    for (i = 0; i < CRYPTO_AES_BLOCK_U8_SIZE; i++)
+    {
         buf_ptr[i] ^= iv_buf_ptr[i];
     }
 }
 
-static void crypto_aes_sub_bytes(crypto_aes_State *state_ptr) {
+static void crypto_aes_sub_bytes(crypto_aes_State *state_ptr)
+{
     uint8_t i, j;
-    for (i = 0U; i < 4U; i++) { // iterate over columns
-        for (j = 0U; j < 4U; j++) { // iterate over rows
+
+    // iterate over columns
+    for (i = 0U; i < 4U; i++)
+    {
+        // iterate over rows
+        for (j = 0U; j < 4U; j++)
+        {
             state_ptr->col[i].byte[j] =
                 crypto_aes_sbox_tbl[state_ptr->col[i].byte[j]];
         }
     }
 }
 
-static void crypto_aes_shift_rows(crypto_aes_State *state_ptr) {
+static void crypto_aes_shift_rows(crypto_aes_State *state_ptr)
+{
     uint8_t temp;
 
     // Rotate first row 1 columns to left
@@ -866,17 +979,21 @@ static void crypto_aes_shift_rows(crypto_aes_State *state_ptr) {
     state_ptr->col[1].byte[3] = temp;
 }
 
-static uint8_t crypto_aes_xtime(uint8_t x) {
+static uint8_t crypto_aes_xtime(uint8_t x)
+{
     return ((x << 1U) ^ (((x >> 7U) & 1U) * 0x1bU));
 }
 
-static void crypto_aes_mix_columns(crypto_aes_State *state_ptr) {
+static void crypto_aes_mix_columns(crypto_aes_State *state_ptr)
+{
     uint8_t i;
     uint8_t temp_col_xor; // XOR sum of all bytes in a column
     uint8_t temp_xor_adj; // XOR sum of adjacent bytes
     uint8_t original_col_0;
 
-    for (i = 0U; i < 4U; i++) { // iterate over columns
+    // iterate over columns
+    for (i = 0U; i < 4U; i++)
+    {
         original_col_0 = state_ptr->col[i].byte[0];
 
         // Calculate the XOR sum of all 4 bytes in the current column
@@ -905,7 +1022,8 @@ static void crypto_aes_mix_columns(crypto_aes_State *state_ptr) {
     }
 }
 
-static uint8_t crypto_aes_multiply(uint8_t x, uint8_t y) {
+static uint8_t crypto_aes_multiply(uint8_t x, uint8_t y)
+{
     uint8_t xtime_x;
     uint8_t result = ((y & 1U) * x);
 
@@ -930,11 +1048,14 @@ static uint8_t crypto_aes_multiply(uint8_t x, uint8_t y) {
     return result;
 }
 
-static void crypto_aes_inv_mix_columns(crypto_aes_State *state_ptr) {
+static void crypto_aes_inv_mix_columns(crypto_aes_State *state_ptr)
+{
     int32_t i;
     uint8_t a, b, c, d;
 
-    for (i = 0; i < 4; i++) { // iterate over columns
+    // iterate over columns
+    for (i = 0; i < 4; i++)
+    {
         a = state_ptr->col[i].byte[0];
         b = state_ptr->col[i].byte[1];
         c = state_ptr->col[i].byte[2];
@@ -955,7 +1076,8 @@ static void crypto_aes_inv_mix_columns(crypto_aes_State *state_ptr) {
     }
 }
 
-static void crypto_aes_inv_shift_rows(crypto_aes_State *state_ptr) {
+static void crypto_aes_inv_shift_rows(crypto_aes_State *state_ptr)
+{
     uint8_t temp;
 
     // Rotate first row 1 columns to right

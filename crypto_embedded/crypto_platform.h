@@ -11,7 +11,8 @@
 #ifndef CRYPTO_PLATFORM_H
 #define CRYPTO_PLATFORM_H
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 //==============================================================================
 // INCLUDE
@@ -50,35 +51,43 @@ extern "C" {
 //==============================================================================
 // PUBLIC FUNCTION DECLARATION
 //==============================================================================
-static inline void crypto_platform_assert(bool cond) {
+static inline void crypto_platform_assert(bool cond)
+{
 #if defined(__linux__) || defined(__APPLE__) || defined(_WIN32) // Host
     assert(cond);
 #elif defined(__HIGHTEC__) // HighTec (GCC-based, TriCore/Aurix)
 #define crypto_platform_assert(cond)
-    if ((cond) == false) {
+    if ((cond) == false)
+    {
         __builtin_trap();
     }
 #elif defined(__TASKING__) // TASKING
-    if ((cond) == false) {
+    if ((cond) == false)
+    {
         __debug();
     }
 #elif defined(__TI_COMPILER_VERSION__) // TI C2000
-    if ((cond) == false) {
+    if ((cond) == false)
+    {
         asm(" ESTOP0");
     }
 #elif defined(__GNUC__) // Generic GCC (ARM, RISC-V, etc.)
-    if ((cond) == false) {
+    if ((cond) == false)
+    {
         __builtin_trap();
     }
 #else // Unknown platform: infinite loop
-    if ((cond) == false) {
-        for (;;) {
+    if ((cond) == false)
+    {
+        for (;;)
+        {
         }
     }
 #endif
 }
 
-static inline void crypto_platform_panic(void) {
+static inline void crypto_platform_panic(void)
+{
 #if defined(__linux__) || defined(__APPLE__) || defined(_WIN32) // Host
     assert(0);
 #elif defined(__HIGHTEC__) // HighTec (GCC-based, TriCore/Aurix)
@@ -91,7 +100,8 @@ static inline void crypto_platform_panic(void) {
 #elif defined(__GNUC__) // Generic GCC (ARM, RISC-V, etc.)
     __builtin_trap();
 #else // Unknown platform: infinite loop
-    for (;;) {
+    for (;;)
+    {
     }
 #endif
 }

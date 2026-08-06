@@ -11,7 +11,8 @@
 #ifndef CRYPTO_BIGNUM_H
 #define CRYPTO_BIGNUM_H
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 //==============================================================================
 // INCLUDE

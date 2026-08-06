@@ -70,13 +70,15 @@ crypto_padding_Ret crypto_padding_pkcs7_pad(
     uint8_t *output_buf_ptr,
     uint32_t output_capacity,
     uint32_t *output_num_ptr
-) {
+)
+{
     uint8_t pad_val = 0U;
     uint32_t padded_len = 0U;
 
     if ((input_buf_ptr == NULL) || //
         (output_buf_ptr == NULL) || //
-        (output_num_ptr == NULL)) {
+        (output_num_ptr == NULL))
+    {
         crypto_util_panic();
         return crypto_padding_Ret_InvalidArg;
     }
@@ -84,12 +86,14 @@ crypto_padding_Ret crypto_padding_pkcs7_pad(
     pad_val = block_size - (uint8_t)(input_num % (uint32_t)block_size);
     padded_len = input_num + (uint32_t)pad_val;
 
-    if (padded_len > output_capacity) {
+    if (padded_len > output_capacity)
+    {
         return crypto_padding_Ret_BufferTooSmall;
     }
 
     // Copy input data
-    if (input_num > 0U) {
+    if (input_num > 0U)
+    {
         (void)memcpy(output_buf_ptr, input_buf_ptr, input_num);
     }
 
@@ -118,19 +122,22 @@ crypto_padding_Ret crypto_padding_pkcs7_unpad(
     uint8_t *output_buf_ptr,
     uint32_t output_capacity,
     uint32_t *output_num_ptr
-) {
+)
+{
     uint8_t pad_val = 0U;
     uint32_t i = 0U;
     const uint8_t *pad_start_ptr = NULL;
 
     if ((input_buf_ptr == NULL) || //
         (output_buf_ptr == NULL) || //
-        (output_num_ptr == NULL)) {
+        (output_num_ptr == NULL))
+    {
         crypto_util_panic();
         return crypto_padding_Ret_InvalidArg;
     }
 
-    if ((input_num == 0U) || ((input_num % (uint32_t)block_size) != 0U)) {
+    if ((input_num == 0U) || ((input_num % (uint32_t)block_size) != 0U))
+    {
         crypto_util_panic();
         return crypto_padding_Ret_BadPadding;
     }
@@ -138,25 +145,30 @@ crypto_padding_Ret crypto_padding_pkcs7_unpad(
     pad_val = input_buf_ptr[input_num - 1U];
 
     // pad_val must be in range [1, block_size]
-    if ((pad_val == 0U) || (pad_val > block_size)) {
+    if ((pad_val == 0U) || (pad_val > block_size))
+    {
         return crypto_padding_Ret_BadPadding;
     }
 
     // Verify all padding bytes equal pad_val
     pad_start_ptr = &input_buf_ptr[input_num - (uint32_t)pad_val];
-    for (i = 0U; i < pad_val; i++) {
-        if (pad_start_ptr[i] != pad_val) {
+    for (i = 0U; i < pad_val; i++)
+    {
+        if (pad_start_ptr[i] != pad_val)
+        {
             return crypto_padding_Ret_BadPadding;
         }
     }
 
     *output_num_ptr = input_num - (uint32_t)pad_val;
 
-    if (*output_num_ptr > output_capacity) {
+    if (*output_num_ptr > output_capacity)
+    {
         return crypto_padding_Ret_BufferTooSmall;
     }
 
-    if (*output_num_ptr > 0U) {
+    if (*output_num_ptr > 0U)
+    {
         (void)memcpy(output_buf_ptr, input_buf_ptr, *output_num_ptr);
     }
 
