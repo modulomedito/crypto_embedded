@@ -12,6 +12,7 @@ xmake run testsuite
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 
 echo === Generating coverage reports ===
+if not exist docs\coverage mkdir docs\coverage
 gcovr --gcov-executable C:/msys64/mingw64/bin/gcov.exe ^
   --gcov-ignore-errors no_working_dir_found ^
   -r . --html-details docs/coverage/index.html --txt docs/coverage/summary.txt ^
