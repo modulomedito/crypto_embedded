@@ -1,58 +1,52 @@
--- Add the release and debug rules
--- (release will be used by default unless you pass -m)
+-- Build modes
 add_rules("mode.release", "mode.debug")
 
--- Optional: You can specify platform and arch via command line:
--- `xmake f -p macosx -a arm64 -m release`
+-- Shared library target (normal builds)
 target("crypto_embedded")
--- Set the target kind to a shared library (.dll on Windows, .dylib on macOS)
 set_kind("shared")
--- Set the C and C++ language standards
 set_languages("c99", "c++17")
--- Recursively add all C source files from lib and crypto_embedded directories
 add_files("crypto_embedded/**.c")
--- Recursively add all header files from lib and crypto_embedded directories
 add_headerfiles("crypto_embedded/**.h")
-
--- Initialize the include directories list with base folders
 local includes = { ".", "crypto_embedded" }
--- Dynamically find and add all subdirectories in crypto_embedded to the includes list
 for _, dir in ipairs(os.dirs("crypto_embedded/**")) do
     table.insert(includes, dir)
 end
-
--- Apply the collected include directories to the target
 add_includedirs(includes)
-
--- Set the C runtime library to multi-threaded (MT) only for Windows
 if is_plat("windows") then
     set_runtimes("MT")
 end
 
--- Define a test suite for the security access module
-add_tests("crypto_embedded_test", {
-    -- The test target is a standalone binary
-    kind = "binary",
-    -- Use c99 for the test code
-    languages = "c99",
-    -- The main test source file
-    files = { "test/test.c" },
-    -- Reuse the same include directories as the main target
-    includes = { ".", "crypto_embedded", "test" },
-})
+-- Standalone test binary (static link for coverage simplicity)
+target("testsuite")
+set_kind("binary")
+set_languages("c99")
+add_files("test/*.c")
+add_files("test/unity/unity.c")
+-- Statically compile crypto sources so gcov sees all code in one binary
+add_files("crypto_embedded/**.c")
+add_headerfiles("crypto_embedded/**.h")
+add_includedirs(".", "crypto_embedded", "test", "test/unity")
+add_defines("CRYPTO_NO_PANIC")
+if is_plat("windows") then
+    set_runtimes("MT")
+end
 
--- Optimization and linker flags for release mode
+-- Release mode optimizations
 if is_mode("release") then
     if is_plat("windows") then
-        -- Enable Level 2 optimizations (/O2)
         add_cxflags("/O2", { force = true })
-        -- Disable incremental linking for faster final builds
         add_ldflags("/INCREMENTAL:NO", { force = true })
     else
-        -- For macOS/Linux (Clang/GCC)
         set_optimize("fastest")
     end
 end
 
+-- Coverage mode: add profiling flags to testsuite (and library for completeness)
+if is_mode("coverage") then
+    add_cxflags("--coverage", { force = true })
+    add_ldflags("--coverage", { force = true })
+end
+
+-- Phony test target for convenience
 target("test")
 set_kind("phony")

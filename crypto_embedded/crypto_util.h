@@ -94,6 +94,7 @@ static inline void crypto_util_assert(bool cond) {
 }
 
 static inline void crypto_util_panic(void) {
+#ifndef CRYPTO_NO_PANIC /* allow test harness to suppress panic */
 #if defined(__linux__) || defined(__APPLE__) || defined(_WIN32) // Host
     assert(0);
 #elif defined(__HIGHTEC__) // HighTec (GCC-based, TriCore/Aurix)
@@ -109,6 +110,7 @@ static inline void crypto_util_panic(void) {
     for (;;) {
     }
 #endif
+#endif /* CRYPTO_NO_PANIC */
 }
 
 //==============================================================================

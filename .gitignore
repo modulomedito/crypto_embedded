@@ -55,3 +55,12 @@ dkms.conf
 *.dwo
 compile_commands.json
 /.xmake/
+
+# Coverage artifacts
+*.gcno
+*.gcda
+*.gcov
+coverage/
+
+# Build output
+/build/
