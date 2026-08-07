@@ -1,7 +1,9 @@
 @echo off
 echo === Building with MSYS2 GCC 15 ===
 xmake f -p mingw --mingw=C:/msys64/mingw64 -m coverage -c
-xmake build -r testsuite
+rem force clean rebuild to avoid stale cached .o files
+rmdir /s /q build 2>nul
+xmake build testsuite
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 
 echo === Running tests ===
