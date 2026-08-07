@@ -1,6 +1,6 @@
 @echo off
 echo === Building with MSYS2 GCC 15 ===
-xmake f --mingw=C:/msys64/mingw64 -m coverage -c
+xmake f -p mingw --mingw=C:/msys64/mingw64 -m coverage -c
 xmake build testsuite
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 
