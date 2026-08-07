@@ -60,7 +60,7 @@ compile_commands.json
 *.gcno
 *.gcda
 *.gcov
-coverage/
+docs/coverage/
 
 # Build output
 /build/
