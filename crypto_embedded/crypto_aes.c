@@ -382,7 +382,7 @@ crypto_aes_Ret crypto_aes_Handle_init(
         (void)memcpy(self->iv_buf, iv_buf_ptr, CRYPTO_AES_BLOCK_U8_SIZE);
     }
 
-    switch (keylen) { // GCOVR_EXCL_LINE
+    switch (keylen) {
     case crypto_aes_KeyLen_128:
         self->key_u32_num = 4U;
         self->round_num = 10U;
@@ -395,9 +395,9 @@ crypto_aes_Ret crypto_aes_Handle_init(
         self->key_u32_num = 8U;
         self->round_num = 14U;
         break;
-    default: // GCOVR_EXCL_LINE
+    default:
         // keylen has already been checked above
-        break; // GCOVR_EXCL_LINE
+        break;
     }
 
     crypto_aes_Handle_key_expansion(self);
@@ -483,7 +483,7 @@ crypto_aes_Ret crypto_aes_Handle_update(
                 crypto_aes_Handle_ecb_encrypt(self);
             } else if (self->mode == crypto_aes_Mode_Cbc) {
                 crypto_aes_Handle_cbc_encrypt(self);
-            } else if (self->mode == crypto_aes_Mode_Ctr) { // GCOVR_EXCL_LINE
+            } else if (self->mode == crypto_aes_Mode_Ctr) {
                 crypto_aes_Handle_ctr_xcrypt(self);
             } else {
                 // Mode has been guarded when init
@@ -523,10 +523,10 @@ crypto_aes_Ret crypto_aes_Handle_finalize(crypto_aes_Handle *self) {
                 &padded_len
             );
 
-            if (self->result_buf_capacity >= (self->result_len + padded_len)) { // GCOVR_EXCL_LINE
+            if (self->result_buf_capacity >= (self->result_len + padded_len)) {
                 (void)memcpy(self->result_buf_ptr, padded_buf, padded_len);
             } else {
-                return crypto_aes_Ret_BufferTooSmall; // GCOVR_EXCL_LINE
+                return crypto_aes_Ret_BufferTooSmall;
             }
 
             if (self->mode == crypto_aes_Mode_Ecb) {
@@ -538,12 +538,12 @@ crypto_aes_Ret crypto_aes_Handle_finalize(crypto_aes_Handle *self) {
             self->result_len += padded_len;
         } else {
             // PKCS#7 Unpadding
-            if ((self->buf_len != 0U) && // GCOVR_EXCL_LINE
+            if ((self->buf_len != 0U) &&
                 (self->buf_len != CRYPTO_AES_BLOCK_U8_SIZE)) {
                 ret = crypto_aes_Ret_CipherTextNotAligned;
                 goto cleanup;
             }
-            if (self->buf_len == CRYPTO_AES_BLOCK_U8_SIZE) { // GCOVR_EXCL_LINE
+            if (self->buf_len == CRYPTO_AES_BLOCK_U8_SIZE) {
                 uint32_t unpadded_len = 0U;
                 uint8_t temp[CRYPTO_AES_BLOCK_U8_SIZE];
 
@@ -572,7 +572,7 @@ crypto_aes_Ret crypto_aes_Handle_finalize(crypto_aes_Handle *self) {
                 self->result_len += unpadded_len;
             }
         }
-    } else if (self->mode == crypto_aes_Mode_Ctr) { // GCOVR_EXCL_LINE
+    } else if (self->mode == crypto_aes_Mode_Ctr) {
         if (self->buf_len > 0U) {
 
             if (self->result_buf_capacity >=
@@ -590,7 +590,7 @@ crypto_aes_Ret crypto_aes_Handle_finalize(crypto_aes_Handle *self) {
         // Mode has been guarded when init
     }
 
-cleanup: // GCOVR_EXCL_LINE
+cleanup:
     // Securely wipe sensitive key material and internal state from memory
     (void)memset(self, 0, sizeof(crypto_aes_Handle));
     return ret;
@@ -664,7 +664,7 @@ static void crypto_aes_Handle_ctr_xcrypt(crypto_aes_Handle *self) {
         (void)memcpy(keystream_buf, (uint8_t *)&state, sizeof(state));
 
         // Increment the IV (Counter) for the next block
-        for (uint32_t j = CRYPTO_AES_BLOCK_U8_SIZE; j > 0U; j--) { // GCOVR_EXCL_LINE
+        for (uint32_t j = CRYPTO_AES_BLOCK_U8_SIZE; j > 0U; j--) {
             self->iv_buf[j - 1U]++;
             if (self->iv_buf[j - 1U] != 0U) {
                 break;
@@ -673,8 +673,8 @@ static void crypto_aes_Handle_ctr_xcrypt(crypto_aes_Handle *self) {
 
         // XOR the keystream with the data
         uint32_t bytes_to_process = self->buf_len - i;
-        if (bytes_to_process > CRYPTO_AES_BLOCK_U8_SIZE) { // GCOVR_EXCL_LINE
-            bytes_to_process = CRYPTO_AES_BLOCK_U8_SIZE; // GCOVR_EXCL_LINE
+        if (bytes_to_process > CRYPTO_AES_BLOCK_U8_SIZE) {
+            bytes_to_process = CRYPTO_AES_BLOCK_U8_SIZE;
         }
 
         for (uint32_t bi = 0U; bi < bytes_to_process; bi++) {
