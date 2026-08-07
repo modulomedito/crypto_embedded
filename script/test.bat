@@ -1,4 +1,5 @@
 @echo off
+cd /d "%~dp0.."
 rem Build and run tests in debug mode (MSYS2 MinGW)
 xmake f -p mingw --mingw=C:/msys64/mingw64 -m debug -c
 xmake build testsuite

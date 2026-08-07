@@ -1,4 +1,5 @@
 @echo off
+cd /d "%~dp0.."
 echo === Building with MSYS2 GCC 15 ===
 xmake f -p mingw --mingw=C:/msys64/mingw64 -m coverage -c
 rem force clean rebuild to avoid stale cached .o files
