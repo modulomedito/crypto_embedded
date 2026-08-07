@@ -1,6 +1,6 @@
 @echo off
 echo ========================================
-echo  crypto_embedded — Test + Coverage
+echo  crypto_embedded : Test + Coverage
 echo ========================================
 echo.
 
@@ -8,7 +8,7 @@ echo [1/2] Running tests...
 call "%~dp0script\test.bat"
 if %ERRORLEVEL% neq 0 (
     echo.
-    echo TESTS FAILED — skipping coverage
+    echo TESTS FAILED -- skipping coverage
     pause
     exit /b %ERRORLEVEL%
 )
