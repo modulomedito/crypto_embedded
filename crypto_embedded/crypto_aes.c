@@ -395,10 +395,9 @@ crypto_aes_Ret crypto_aes_Handle_init(
         self->key_u32_num = 8U;
         self->round_num = 14U;
         break;
-    default: // GCOVR_EXCL_START
-        // keylen has already been checked above (defensive, unreachable)
-        break;
-        // GCOVR_EXCL_STOP
+    default: // GCOVR_EXCL_LINE
+        // keylen has already been checked above
+        break; // GCOVR_EXCL_LINE
     }
 
     crypto_aes_Handle_key_expansion(self);
@@ -591,9 +590,7 @@ crypto_aes_Ret crypto_aes_Handle_finalize(crypto_aes_Handle *self) {
         // Mode has been guarded when init
     }
 
-// GCOVR_EXCL_START
-cleanup:
-// GCOVR_EXCL_STOP
+cleanup: // GCOVR_EXCL_LINE
     // Securely wipe sensitive key material and internal state from memory
     (void)memset(self, 0, sizeof(crypto_aes_Handle));
     return ret;
@@ -676,11 +673,9 @@ static void crypto_aes_Handle_ctr_xcrypt(crypto_aes_Handle *self) {
 
         // XOR the keystream with the data
         uint32_t bytes_to_process = self->buf_len - i;
-        // GCOVR_EXCL_START (buf_len never exceeds block size, defensive clamp)
-        if (bytes_to_process > CRYPTO_AES_BLOCK_U8_SIZE) {
-            bytes_to_process = CRYPTO_AES_BLOCK_U8_SIZE;
+        if (bytes_to_process > CRYPTO_AES_BLOCK_U8_SIZE) { // GCOVR_EXCL_LINE
+            bytes_to_process = CRYPTO_AES_BLOCK_U8_SIZE; // GCOVR_EXCL_LINE
         }
-        // GCOVR_EXCL_STOP
 
         for (uint32_t bi = 0U; bi < bytes_to_process; bi++) {
             self->result_buf_ptr[i] ^= keystream_buf[bi];

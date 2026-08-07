@@ -41,7 +41,8 @@ if is_mode("release") then
     end
 end
 
--- Coverage mode: add profiling flags to testsuite (and library for completeness)
+-- Coverage mode: line + branch + decision (via gcovr --decisions heuristic)
+-- True MC/DC requires GCC 14+ -fcondition-coverage + gcov support
 if is_mode("coverage") then
     add_cxflags("--coverage", { force = true })
     add_ldflags("--coverage", { force = true })
