@@ -15,6 +15,8 @@ gcovr --gcov-executable C:/msys64/mingw64/bin/gcov.exe ^
   --gcov-ignore-errors no_working_dir_found ^
   -r . --html-details coverage/index.html --txt coverage/summary.txt ^
   --decisions ^
+  --filter "crypto_embedded/*" ^
+  --exclude "test/*" ^
   --fail-under-line 100 --fail-under-branch 100 --fail-under-decision 100
 if %ERRORLEVEL% neq 0 (
     echo Coverage thresholds NOT met! Check coverage/index.html
